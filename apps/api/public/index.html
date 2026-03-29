@@ -480,6 +480,38 @@
     .bill-confirm-value { font-size:13px; font-weight:600; color:var(--t1); }
 
     .bill-success-icon { width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg,#4CAF50,#66BB6A); display:flex; align-items:center; justify-content:center; font-size:40px; margin:0 auto 20px; color:#fff; }
+
+    /* ── Phase 6: KYC + Profile + Security ── */
+    .kyc-step-indicator { display:flex; gap:8px; margin:16px 0 24px; }
+    .kyc-step-dot { flex:1; height:4px; border-radius:2px; background:#e0e0e0; transition:background 0.3s; }
+    .kyc-step-dot.active { background:var(--p); }
+    .kyc-step-dot.done { background:#4CAF50; }
+
+    .kyc-tier-card { background:linear-gradient(135deg,var(--p),#3d0e18); border-radius:16px; padding:20px; color:#fff; margin-bottom:20px; }
+    .kyc-tier-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .kyc-tier-name { font-size:18px; font-weight:700; }
+    .kyc-tier-badge { padding:4px 12px; border-radius:12px; font-size:11px; font-weight:700; }
+    .kyc-limit-row { display:flex; justify-content:space-between; font-size:13px; margin-top:8px; opacity:0.85; }
+    .kyc-progress-bar { height:6px; border-radius:3px; background:rgba(255,255,255,0.2); margin-top:12px; overflow:hidden; }
+    .kyc-progress-fill { height:100%; border-radius:3px; background:#4CAF50; transition:width 0.5s; }
+
+    .kyc-field-group { margin-bottom:16px; }
+    .kyc-field-group label { display:block; font-size:12px; font-weight:600; color:var(--t2); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+    .kyc-field-group input, .kyc-field-group select { width:100%; padding:14px 16px; border:1.5px solid #e0e0e0; border-radius:12px; font-size:14px; background:#fff; box-sizing:border-box; }
+    .kyc-field-group input:focus, .kyc-field-group select:focus { border-color:var(--p); outline:none; }
+    .kyc-field-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+    .kyc-doc-option { display:flex; align-items:center; gap:12px; padding:14px; border:2px solid #eee; border-radius:12px; cursor:pointer; transition:all 0.2s; margin-bottom:8px; }
+    .kyc-doc-option.selected { border-color:var(--p); background:rgba(109,35,53,0.04); }
+    .kyc-doc-icon { font-size:24px; }
+    .kyc-doc-name { font-size:14px; font-weight:600; color:var(--t1); }
+    .kyc-doc-desc { font-size:12px; color:var(--t2); }
+
+    .pin-setup-title { font-size:20px; font-weight:700; color:var(--t1); text-align:center; margin-bottom:8px; }
+    .pin-setup-sub { font-size:14px; color:var(--t2); text-align:center; margin-bottom:24px; }
+
+    .profile-edit-sheet .field { margin-bottom:16px; }
+    .profile-section-title { font-size:14px; font-weight:700; color:var(--t1); margin:20px 0 12px; text-transform:uppercase; letter-spacing:0.5px; }
   </style>
 </head>
 <body>
@@ -973,10 +1005,157 @@
     </div>
   </div>
 
+  <!-- ════════════ KYC FLOW ════════════ -->
+  <div class="flow-overlay" id="kyc-flow">
+    <div class="flow-header">
+      <button class="flow-back" id="kyc-back" onclick="kycBack()">&#8592;</button>
+      <div class="flow-title">KYC Verification</div>
+      <button class="flow-close" onclick="closeKycFlow()">&#10005;</button>
+    </div>
+    <div class="kyc-step-indicator" id="kyc-dots"><div class="kyc-step-dot active"></div><div class="kyc-step-dot"></div><div class="kyc-step-dot"></div></div>
+    <div class="flow-body">
+
+      <!-- Step 1: Personal Info -->
+      <div class="flow-screen active" id="kyc-s1">
+        <h2>Personal Information</h2>
+        <div class="kyc-field-row">
+          <div class="kyc-field-group"><label>First Name</label><input type="text" id="kyc-fname" placeholder="John"></div>
+          <div class="kyc-field-group"><label>Last Name</label><input type="text" id="kyc-lname" placeholder="Doe"></div>
+        </div>
+        <div class="kyc-field-group"><label>Date of Birth</label><input type="date" id="kyc-dob"></div>
+        <div class="kyc-field-row">
+          <div class="kyc-field-group"><label>Nationality</label>
+            <select id="kyc-nationality"><option value="NG">Nigeria</option><option value="GH">Ghana</option><option value="KE">Kenya</option><option value="QA" selected>Qatar</option><option value="AE">UAE</option><option value="SA">Saudi Arabia</option><option value="GB">United Kingdom</option></select>
+          </div>
+          <div class="kyc-field-group"><label>Phone</label><input type="tel" id="kyc-phone" placeholder="+234..."></div>
+        </div>
+      </div>
+
+      <!-- Step 2: Address -->
+      <div class="flow-screen" id="kyc-s2">
+        <h2>Address Details</h2>
+        <div class="kyc-field-group"><label>Address Line</label><input type="text" id="kyc-addr" placeholder="123 Main Street"></div>
+        <div class="kyc-field-row">
+          <div class="kyc-field-group"><label>City</label><input type="text" id="kyc-city" placeholder="Doha"></div>
+          <div class="kyc-field-group"><label>State / Region</label><input type="text" id="kyc-state" placeholder="Ad Dawhah"></div>
+        </div>
+        <div class="kyc-field-row">
+          <div class="kyc-field-group"><label>Postal Code</label><input type="text" id="kyc-postcode" placeholder="00000"></div>
+          <div class="kyc-field-group"><label>Country</label>
+            <select id="kyc-country"><option value="QA" selected>Qatar</option><option value="AE">UAE</option><option value="SA">Saudi Arabia</option><option value="NG">Nigeria</option><option value="GH">Ghana</option><option value="KE">Kenya</option><option value="GB">UK</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: ID Document -->
+      <div class="flow-screen" id="kyc-s3">
+        <h2>Identity Document</h2>
+        <p style="font-size:13px;color:var(--t2);margin-bottom:16px;">Select your document type and enter the details</p>
+        <div id="kyc-doc-options">
+          <div class="kyc-doc-option selected" data-type="PASSPORT" onclick="selectKycDoc(this)">
+            <div class="kyc-doc-icon">&#128255;</div>
+            <div><div class="kyc-doc-name">Passport</div><div class="kyc-doc-desc">International passport</div></div>
+          </div>
+          <div class="kyc-doc-option" data-type="NATIONAL_ID" onclick="selectKycDoc(this)">
+            <div class="kyc-doc-icon">&#127380;</div>
+            <div><div class="kyc-doc-name">National ID</div><div class="kyc-doc-desc">Government-issued ID card</div></div>
+          </div>
+          <div class="kyc-doc-option" data-type="DRIVERS_LICENSE" onclick="selectKycDoc(this)">
+            <div class="kyc-doc-icon">&#128663;</div>
+            <div><div class="kyc-doc-name">Driver's License</div><div class="kyc-doc-desc">Valid driver's license</div></div>
+          </div>
+        </div>
+        <div class="kyc-field-group mt-16"><label>Document Number</label><input type="text" id="kyc-doc-num" placeholder="A12345678"></div>
+        <div class="kyc-field-row">
+          <div class="kyc-field-group"><label>Issuing Country</label>
+            <select id="kyc-doc-country"><option value="QA" selected>Qatar</option><option value="NG">Nigeria</option><option value="GH">Ghana</option><option value="KE">Kenya</option><option value="AE">UAE</option><option value="GB">UK</option></select>
+          </div>
+          <div class="kyc-field-group"><label>Expiry Date</label><input type="date" id="kyc-doc-expiry"></div>
+        </div>
+      </div>
+
+      <!-- Step 4: Processing -->
+      <div class="flow-screen" id="kyc-s4">
+        <div class="success-screen">
+          <div class="loading" style="margin-bottom:24px;"><div class="spinner" style="width:48px;height:48px;"></div></div>
+          <div class="success-title">Verifying your identity...</div>
+          <div class="success-sub">This usually takes a few seconds in sandbox mode</div>
+        </div>
+      </div>
+
+      <!-- Step 5: Success -->
+      <div class="flow-screen" id="kyc-s5">
+        <div class="success-screen">
+          <div class="bill-success-icon">&#10003;</div>
+          <div class="success-title">KYC Verified!</div>
+          <div class="success-sub">Your account has been upgraded to Tier 1</div>
+          <div style="margin-top:20px;padding:16px;background:#f8f8f8;border-radius:12px;">
+            <div style="font-size:13px;color:var(--t2);margin-bottom:6px;">Your limits have been increased:</div>
+            <div style="font-size:14px;font-weight:600;">Daily: $5,000 &nbsp;|&nbsp; Monthly: $25,000</div>
+          </div>
+          <button class="btn btn-p mt-24" onclick="closeKycFlow()" style="max-width:300px;">Done</button>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div class="flow-screen" id="kyc-s-error">
+        <div class="error-state">
+          <div class="error-icon">&#9888;</div>
+          <div class="error-title" id="kyc-error-title">Verification Failed</div>
+          <div class="error-sub" id="kyc-error-sub">Please check your details and try again.</div>
+          <div class="error-actions">
+            <button class="btn btn-s btn-sm" onclick="closeKycFlow()">Cancel</button>
+            <button class="btn btn-p btn-sm" onclick="kycRetry()">Try Again</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="flow-footer" id="kyc-footer">
+      <button class="btn btn-p" id="kyc-next-btn" onclick="kycNext()">Continue</button>
+    </div>
+  </div>
+
+  <!-- ════════════ PIN SETUP/CHANGE SHEET ════════════ -->
+  <div class="overlay" id="sh-pin">
+    <div class="sheet">
+      <div class="sheet-bar"></div>
+      <h2 id="pin-sheet-title">Set Transaction PIN</h2>
+      <p style="font-size:13px;color:var(--t2);margin-bottom:16px;" id="pin-sheet-sub">Create a 6-digit PIN for transactions</p>
+      <div id="pin-setup-area">
+        <div id="pin-setup-current" style="display:none;">
+          <div class="kyc-field-group"><label>Current PIN</label><input type="password" id="ps-current" maxlength="6" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;" inputmode="numeric" style="text-align:center;font-size:20px;letter-spacing:8px;"></div>
+        </div>
+        <div class="kyc-field-group"><label>New PIN</label><input type="password" id="ps-new" maxlength="6" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;" inputmode="numeric" style="text-align:center;font-size:20px;letter-spacing:8px;"></div>
+        <div class="kyc-field-group"><label>Confirm PIN</label><input type="password" id="ps-confirm" maxlength="6" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;" inputmode="numeric" style="text-align:center;font-size:20px;letter-spacing:8px;"></div>
+      </div>
+      <button class="btn btn-p mt-8" id="pin-setup-btn" onclick="submitPin()">Set PIN</button>
+      <button class="btn btn-ghost mt-8" onclick="closeSheet('sh-pin')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ════════════ PROFILE EDIT SHEET ════════════ -->
+  <div class="overlay" id="sh-profile-edit">
+    <div class="sheet profile-edit-sheet">
+      <div class="sheet-bar"></div>
+      <h2>Edit Profile</h2>
+      <div class="kyc-field-row">
+        <div class="field"><label>First Name</label><input type="text" id="pe-fname"></div>
+        <div class="field"><label>Last Name</label><input type="text" id="pe-lname"></div>
+      </div>
+      <div class="field"><label>Country</label>
+        <select id="pe-country"><option value="QA">Qatar</option><option value="AE">UAE</option><option value="SA">Saudi Arabia</option><option value="NG">Nigeria</option><option value="GH">Ghana</option><option value="KE">Kenya</option><option value="GB">UK</option></select>
+      </div>
+      <button class="btn btn-p mt-16" onclick="saveProfile()">Save Changes</button>
+      <button class="btn btn-ghost mt-8" onclick="closeSheet('sh-profile-edit')">Cancel</button>
+    </div>
+  </div>
+
   <!-- ════════════ PROFILE ════════════ -->
   <div class="screen screen-pad-top" id="screen-profile">
     <div class="hdr"><h1>Profile</h1></div>
     <div id="profile-card-area"></div>
+    <div id="kyc-tier-area"></div>
     <div id="profile-menu-area"></div>
     <button class="btn btn-danger mt-24" onclick="doLogout()">Sign Out</button>
   </div>
@@ -1890,7 +2069,29 @@ async function loadProfile(){
           <div class="profile-badge"><span class="badge badge-s">${p.kycTier||'TIER_0'}</span></div>
         </div>
       </div>`;
+    // KYC tier card
+    const tierLimits={TIER_0:{daily:500,monthly:2000},TIER_1:{daily:5000,monthly:25000},TIER_2:{daily:25000,monthly:100000}};
+    const tier=p.kycTier||'TIER_0';
+    const limits=tierLimits[tier]||tierLimits.TIER_0;
+    const tierColor=tier==='TIER_2'?'#4CAF50':tier==='TIER_1'?'#FF9800':'#f44336';
+    document.getElementById('kyc-tier-area').innerHTML=`
+      <div class="kyc-tier-card">
+        <div class="kyc-tier-header">
+          <div class="kyc-tier-name">Verification Level</div>
+          <div class="kyc-tier-badge" style="background:${tierColor}">${tier.replace('_',' ')}</div>
+        </div>
+        <div class="kyc-limit-row"><span>Daily limit</span><span>$${limits.daily.toLocaleString()}</span></div>
+        <div class="kyc-limit-row"><span>Monthly limit</span><span>$${limits.monthly.toLocaleString()}</span></div>
+        <div class="kyc-progress-bar"><div class="kyc-progress-fill" style="width:${tier==='TIER_2'?100:tier==='TIER_1'?66:33}%"></div></div>
+        ${tier!=='TIER_2'?`<button class="btn btn-sm mt-12" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.3);width:100%;" onclick="openKycFlow()">Upgrade to ${tier==='TIER_0'?'Tier 1':'Tier 2'}</button>`:''}
+      </div>`;
+
     document.getElementById('profile-menu-area').innerHTML=`
+      <div class="menu-item" onclick="openProfileEdit()">
+        <div class="menu-icon">&#9998;</div>
+        <div class="menu-label">Edit Profile</div>
+        <span class="menu-arrow">&#8250;</span>
+      </div>
       <div class="menu-item" onclick="nav('screen-recipients')">
         <div class="menu-icon">&#128101;</div>
         <div class="menu-label">Saved Recipients</div>
@@ -1902,15 +2103,15 @@ async function loadProfile(){
         <div class="menu-label">Receive Money</div>
         <span class="menu-arrow">&#8250;</span>
       </div>
-      <div class="menu-item" onclick="toast('Coming in Phase 6','e')">
+      <div class="menu-item" onclick="openPinSheet()">
         <div class="menu-icon">&#128274;</div>
         <div class="menu-label">Security & PIN</div>
         <span class="menu-arrow">&#8250;</span>
       </div>
-      <div class="menu-item" onclick="toast('Coming in Phase 6','e')">
+      <div class="menu-item" onclick="openKycFlow()">
         <div class="menu-icon">&#127380;</div>
         <div class="menu-label">KYC Verification</div>
-        <span class="menu-badge">${p.kycTier||'TIER_0'}</span>
+        <span class="menu-badge" style="background:${tierColor};color:#fff;">${tier.replace('_',' ')}</span>
         <span class="menu-arrow">&#8250;</span>
       </div>
       <div class="menu-item" onclick="nav('screen-notif')">
@@ -1918,13 +2119,8 @@ async function loadProfile(){
         <div class="menu-label">Notifications</div>
         <span class="menu-arrow">&#8250;</span>
       </div>
-      <div class="menu-item" onclick="toast('Coming in Phase 7','e')">
-        <div class="menu-icon">&#127873;</div>
-        <div class="menu-label">Referral Program</div>
-        <span class="menu-arrow">&#8250;</span>
-      </div>
       <div class="card mt-16" style="padding:12px 16px;">
-        <div class="txd-row" style="border:none;padding:4px 0;"><span class="txd-label">Referral Code</span><span class="txd-val" style="font-family:monospace;">${d.referralCode||'N/A'}</span></div>
+        <div class="txd-row" style="border:none;padding:4px 0;"><span class="txd-label">Referral Code</span><span class="txd-val" style="font-family:monospace;cursor:pointer;" onclick="navigator.clipboard.writeText('${d.referralCode||''}');toast('Copied!')">${d.referralCode||'N/A'} &#128203;</span></div>
         <div class="txd-row" style="border:none;padding:4px 0;"><span class="txd-label">Member since</span><span class="txd-val">${new Date(d.createdAt).toLocaleDateString()}</span></div>
       </div>`;
   }catch(e){console.error(e);}
@@ -3179,6 +3375,178 @@ async function loadBillHistory(){
       </div>`;
     }).join('');
   }catch(e){console.log('Bill history:',e.message);}
+}
+
+// ─── Phase 6: KYC + Profile + Security ───
+let kycStep=1,kycDocType='PASSPORT';
+
+function openKycFlow(){
+  kycStep=1;kycDocType='PASSPORT';
+  // Pre-fill from profile
+  const p=U?.profile||{};
+  document.getElementById('kyc-fname').value=p.firstName||'';
+  document.getElementById('kyc-lname').value=p.lastName||'';
+  document.getElementById('kyc-city').value=p.city||'';
+  document.getElementById('kyc-postcode').value=p.postalCode||'';
+  if(p.country){
+    document.getElementById('kyc-nationality').value=p.country;
+    document.getElementById('kyc-country').value=p.country;
+    document.getElementById('kyc-doc-country').value=p.country;
+  }
+  renderKycStep();
+  document.getElementById('kyc-flow').classList.add('on');
+}
+
+function closeKycFlow(){
+  document.getElementById('kyc-flow').classList.remove('on');
+  loadProfile();
+}
+
+function renderKycStep(){
+  document.querySelectorAll('#kyc-flow .flow-body .flow-screen').forEach(s=>s.classList.remove('active'));
+  const sid=kycStep<=5?'kyc-s'+kycStep:'kyc-s-error';
+  document.getElementById(sid).classList.add('active');
+  // Update step dots
+  document.querySelectorAll('#kyc-dots .kyc-step-dot').forEach((d,i)=>{
+    d.className='kyc-step-dot';
+    if(i+1<kycStep)d.classList.add('done');
+    if(i+1===kycStep)d.classList.add('active');
+  });
+  const footer=document.getElementById('kyc-footer');
+  const backBtn=document.getElementById('kyc-back');
+  footer.style.display=(kycStep>=4)?'none':'block';
+  backBtn.style.visibility=(kycStep===1)?'hidden':'visible';
+  document.getElementById('kyc-next-btn').textContent=kycStep===3?'Submit':'Continue';
+}
+
+function kycNext(){
+  if(kycStep===1){
+    const fname=document.getElementById('kyc-fname').value.trim();
+    const lname=document.getElementById('kyc-lname').value.trim();
+    const dob=document.getElementById('kyc-dob').value;
+    if(!fname||!lname){toast('Enter your full name','e');return;}
+    if(!dob){toast('Enter date of birth','e');return;}
+    kycStep=2;renderKycStep();return;
+  }
+  if(kycStep===2){
+    const addr=document.getElementById('kyc-addr').value.trim();
+    const city=document.getElementById('kyc-city').value.trim();
+    if(!addr||!city){toast('Enter your address','e');return;}
+    kycStep=3;renderKycStep();return;
+  }
+  if(kycStep===3){
+    const docNum=document.getElementById('kyc-doc-num').value.trim();
+    if(!docNum){toast('Enter document number','e');return;}
+    submitKyc();
+  }
+}
+
+function kycBack(){if(kycStep>1){kycStep--;renderKycStep();}}
+
+function selectKycDoc(el){
+  kycDocType=el.dataset.type;
+  document.querySelectorAll('#kyc-doc-options .kyc-doc-option').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function submitKyc(){
+  kycStep=4;renderKycStep(); // show processing
+  try{
+    const body={
+      firstName:document.getElementById('kyc-fname').value.trim(),
+      lastName:document.getElementById('kyc-lname').value.trim(),
+      dateOfBirth:document.getElementById('kyc-dob').value,
+      nationality:document.getElementById('kyc-nationality').value,
+      mobile:document.getElementById('kyc-phone').value.trim()||'+97400000000',
+      address:{
+        line1:document.getElementById('kyc-addr').value.trim(),
+        city:document.getElementById('kyc-city').value.trim(),
+        state:document.getElementById('kyc-state').value.trim()||undefined,
+        postcode:document.getElementById('kyc-postcode').value.trim()||'00000',
+        country:document.getElementById('kyc-country').value,
+      },
+      identityDocument:{
+        type:kycDocType,
+        number:document.getElementById('kyc-doc-num').value.trim(),
+        issuingCountry:document.getElementById('kyc-doc-country').value,
+        expiryDate:document.getElementById('kyc-doc-expiry').value||'2030-12-31',
+      },
+    };
+    await api('POST','/users/me/kyc',body);
+    // Simulate processing delay
+    await new Promise(r=>setTimeout(r,1500));
+    kycStep=5;renderKycStep();
+  }catch(e){
+    document.getElementById('kyc-error-title').textContent='Verification Failed';
+    document.getElementById('kyc-error-sub').textContent=e.message||'Please try again';
+    kycStep=99;renderKycStep();
+  }
+}
+
+function kycRetry(){kycStep=1;renderKycStep();}
+
+// ─── PIN Setup/Change ───
+function openPinSheet(){
+  // Check if user already has a PIN
+  const hasPin=!!U?.pin; // we don't know from client, so always show both options
+  document.getElementById('pin-sheet-title').textContent='Set Transaction PIN';
+  document.getElementById('pin-sheet-sub').textContent='Create a 6-digit PIN for secure transactions';
+  document.getElementById('pin-setup-current').style.display='none';
+  document.getElementById('ps-current').value='';
+  document.getElementById('ps-new').value='';
+  document.getElementById('ps-confirm').value='';
+  document.getElementById('pin-setup-btn').textContent='Set PIN';
+  openSheet('sh-pin');
+}
+
+function openChangePinSheet(){
+  document.getElementById('pin-sheet-title').textContent='Change PIN';
+  document.getElementById('pin-sheet-sub').textContent='Enter your current PIN and a new 6-digit PIN';
+  document.getElementById('pin-setup-current').style.display='block';
+  document.getElementById('ps-current').value='';
+  document.getElementById('ps-new').value='';
+  document.getElementById('ps-confirm').value='';
+  document.getElementById('pin-setup-btn').textContent='Change PIN';
+  openSheet('sh-pin');
+}
+
+async function submitPin(){
+  const newPin=document.getElementById('ps-new').value;
+  const confirmPin=document.getElementById('ps-confirm').value;
+  const currentPin=document.getElementById('ps-current').value;
+  if(newPin.length!==6||!/^\d+$/.test(newPin)){toast('PIN must be 6 digits','e');return;}
+  if(newPin!==confirmPin){toast('PINs do not match','e');return;}
+  try{
+    const body={pin:newPin};
+    if(currentPin)body.currentPin=currentPin;
+    await api('POST','/users/me/pin',body);
+    closeSheet('sh-pin');
+    toast('PIN set successfully!');
+  }catch(e){toast(e.message,'e');}
+}
+
+// ─── Profile Edit ───
+function openProfileEdit(){
+  const p=U?.profile||{};
+  document.getElementById('pe-fname').value=p.firstName||'';
+  document.getElementById('pe-lname').value=p.lastName||'';
+  document.getElementById('pe-country').value=p.country||'QA';
+  openSheet('sh-profile-edit');
+}
+
+async function saveProfile(){
+  const body={
+    firstName:document.getElementById('pe-fname').value.trim(),
+    lastName:document.getElementById('pe-lname').value.trim(),
+    country:document.getElementById('pe-country').value,
+  };
+  if(!body.firstName||!body.lastName){toast('Name is required','e');return;}
+  try{
+    await api('PUT','/users/me',body);
+    closeSheet('sh-profile-edit');
+    toast('Profile updated!');
+    await loadProfile();
+  }catch(e){toast(e.message,'e');}
 }
 </script>
 </body>
