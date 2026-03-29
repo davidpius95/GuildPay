@@ -360,6 +360,35 @@ webhookRouter.post("/nium", async (req: Request, res: Response) => {
       ]);
     }
 
+    // ── KYC/Compliance webhook events ──
+    if (event.type === "CUSTOMER_KYC_STATUS" || event.type === "CUSTOMER_COMPLIANCE_STATUS") {
+      const customerHashId = event.customerHashId;
+      if (customerHashId) {
+        // Find user with this Nium customer ID by checking wallets
+        // (Stored as niumCustomerHashId on wallet via `as any`)
+        const wallets = await prisma.wallet.findMany({ where: {} });
+        const wallet = wallets.find((w: any) => w.niumCustomerHashId === customerHashId);
+        if (wallet) {
+          const kycStatus = event.kycStatus || event.complianceStatus;
+          if (kycStatus === "COMPLETED" || kycStatus === "APPROVED") {
+            await prisma.userProfile.updateMany({
+              where: { userId: wallet.userId },
+              data: { kycTier: "TIER_2" },
+            });
+            await prisma.notification.create({
+              data: {
+                userId: wallet.userId,
+                type: "SYSTEM",
+                title: "KYC Approved",
+                body: "Your identity verification is complete. You now have Tier 2 access with higher transaction limits.",
+              },
+            });
+            console.log(`[WEBHOOK] Nium KYC approved for user ${wallet.userId}`);
+          }
+        }
+      }
+    }
+
     res.status(200).json({ received: true });
   } catch (err) {
     console.error("[WEBHOOK] Nium error:", err);

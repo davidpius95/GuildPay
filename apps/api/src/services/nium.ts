@@ -98,7 +98,7 @@ export class NiumError extends Error {
 
 /**
  * Create a Nium customer (individual) with KYC.
- * Maps to: POST /api/v1/client/{clientHashId}/customer
+ * Maps to: POST /api/v4/client/{clientHashId}/customer (Unified Add Customer)
  *
  * For Gulf-based users: eKYC may be available
  * For Africa-based users: document-based manual KYC
@@ -125,10 +125,9 @@ export async function onboardCustomer(params: {
     expiryDate: string;
   };
 }): Promise<NiumCustomer> {
-  const url = niumConfig.clientUrl("/customer");
+  const url = niumConfig.clientUrl("/customer", "v4");
 
   const body: Record<string, any> = {
-    customerType: "individual",
     email: params.email,
     firstName: params.firstName,
     lastName: params.lastName,
@@ -136,19 +135,20 @@ export async function onboardCustomer(params: {
     countryCode: params.countryCode,
     nationality: params.nationality,
     mobile: params.mobile,
+    kycMode: "MANUAL_KYC",
     billingAddress1: params.address.line1,
     billingCity: params.address.city,
     billingState: params.address.state,
-    billingZip: params.address.postcode,
+    billingZipCode: params.address.postcode,
     billingCountry: params.address.country,
   };
 
   if (params.identityDocument) {
     body.identificationDoc = [
       {
-        identificationDocType: params.identityDocument.type,
-        identificationDocNumber: params.identityDocument.number,
-        identificationIssuingCountry: params.identityDocument.issuingCountry,
+        identificationType: params.identityDocument.type,
+        identificationValue: params.identityDocument.number,
+        identificationDocIssuanceCountry: params.identityDocument.issuingCountry,
         identificationDocExpiry: params.identityDocument.expiryDate,
       },
     ];

@@ -6,6 +6,7 @@ import { AppError } from "../middleware/error";
 import * as nium from "../services/nium";
 import * as flw from "../services/flutterwave";
 import { selectCardProvider } from "../services/payment-router";
+import { isDemoMode } from "../config/providers";
 
 export const cardRouter = Router();
 
@@ -73,8 +74,10 @@ cardRouter.post(
           expiryYear = parseInt(expYear);
         }
       } catch (providerErr) {
-        // Sandbox fallback: generate mock card when provider APIs are unavailable
-        console.log(`[CARDS] Provider ${provider} failed, using sandbox fallback:`, (providerErr as Error).message);
+        if (!isDemoMode()) {
+          throw new AppError("Card provider unavailable. Please try again later.", 502, "CARD_PROVIDER_ERROR");
+        }
+        console.log(`[CARDS] Demo mode — provider ${provider} failed, using sandbox fallback:`, (providerErr as Error).message);
         providerCardId = `sandbox_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
         last4 = String(Math.floor(1000 + Math.random() * 9000));
         expiryMonth = 12;

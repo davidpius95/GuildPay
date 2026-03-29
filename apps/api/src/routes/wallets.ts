@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "../config/db";
 import { AuthRequest } from "../middleware/auth";
 import { AppError } from "../middleware/error";
+import * as nium from "../services/nium";
 
 export const walletRouter = Router();
 
@@ -20,6 +21,20 @@ walletRouter.get("/", async (req: AuthRequest, res: Response, next: NextFunction
 
     if (!wallet) {
       throw new AppError("Wallet not found", 404, "WALLET_NOT_FOUND");
+    }
+
+    // Sync balances from Nium if customer is onboarded (non-sandbox)
+    if ((wallet as any).niumCustomerHashId && !(wallet as any).niumCustomerHashId?.startsWith("sandbox_")) {
+      try {
+        const niumBalances = await nium.getWalletBalances({
+          customerHashId: (wallet as any).niumCustomerHashId,
+          walletHashId: (wallet as any).niumWalletHashId,
+        });
+        console.log(`[WALLET] Synced ${niumBalances.length} balances from Nium`);
+      } catch (e) {
+        // Non-blocking — proceed with DB balances
+        console.warn(`[WALLET] Nium balance sync failed: ${(e as Error).message}`);
+      }
     }
 
     // Calculate total balance in USD
@@ -100,16 +115,22 @@ walletRouter.post("/currencies", async (req: AuthRequest, res: Response, next: N
 // ─── GET /statement — Transaction history for wallet ───
 walletRouter.get("/statement", async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { currency, from, to, page, limit } = z.object({
+    const { currency, type, from, to, page, limit } = z.object({
       currency: z.string().optional(),
-      from: z.string().datetime().optional(),
-      to: z.string().datetime().optional(),
+      type: z.string().optional(), // SEND, TOPUP, RECEIVE, WITHDRAW, EXCHANGE, BILL_PAYMENT, CARD_FUND
+      from: z.string().optional(),
+      to: z.string().optional(),
       page: z.coerce.number().min(1).default(1),
       limit: z.coerce.number().min(1).max(100).default(20),
     }).parse(req.query);
 
     const where: any = { userId: req.user!.id };
     if (currency) where.currency = currency;
+    if (type) {
+      // Support comma-separated types for grouped filters
+      const types = type.split(",").map((t: string) => t.trim());
+      where.type = types.length === 1 ? types[0] : { in: types };
+    }
     if (from || to) {
       where.createdAt = {};
       if (from) where.createdAt.gte = new Date(from);

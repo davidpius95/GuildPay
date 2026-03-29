@@ -35,7 +35,7 @@ async function testNium() {
 
   try {
     // Test: Get client details
-    const url = `${niumConfig.baseUrl}/api/v1/client/${niumConfig.clientHashId}`;
+    const url = `${niumConfig.baseUrl}/v1/client/${niumConfig.clientHashId}`;
     const res = await fetch(url, {
       headers: {
         "x-api-key": niumConfig.apiKey,
@@ -58,7 +58,7 @@ async function testNium() {
 
   // Test: Get supported corridors / FX rate
   try {
-    const url = `${niumConfig.baseUrl}/api/v1/client/${niumConfig.clientHashId}/exchangeRate?sourceCurrencyCode=USD&destinationCurrencyCode=NGN&sourceAmount=100`;
+    const url = `${niumConfig.baseUrl}/v1/client/${niumConfig.clientHashId}/exchangeRate?sourceCurrencyCode=USD&destinationCurrencyCode=NGN&sourceAmount=100`;
     const res = await fetch(url, {
       headers: {
         "x-api-key": niumConfig.apiKey,

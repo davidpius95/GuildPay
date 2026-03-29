@@ -3,6 +3,8 @@ import { z } from "zod";
 import { prisma } from "../config/db";
 import { AuthRequest } from "../middleware/auth";
 import { AppError } from "../middleware/error";
+import * as flw from "../services/flutterwave";
+import { isDemoMode } from "../config/providers";
 
 export const recipientRouter = Router();
 
@@ -105,5 +107,30 @@ recipientRouter.delete("/:id", async (req: AuthRequest, res: Response, next: Nex
       throw new AppError("Recipient not found", 404, "RECIPIENT_NOT_FOUND");
     }
     res.json({ deleted: true });
+  } catch (err) { next(err); }
+});
+
+// GET /banks/:country — List supported banks for a country
+recipientRouter.get("/banks/:country", async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const country = (req.params.country as string).toUpperCase();
+    let banks;
+    try {
+      const result = await flw.getBanks(country);
+      banks = result.data.map((b: any) => ({ code: b.code, name: b.name }));
+    } catch (e) {
+      if (!isDemoMode()) {
+        throw new AppError("Bank list unavailable. Please try again later.", 502, "BANKS_PROVIDER_ERROR");
+      }
+      console.log(`[RECIPIENTS] Demo mode — bank list fallback for ${country}`);
+      // Fallback bank list for common countries
+      const fallbacks: Record<string, Array<{code:string,name:string}>> = {
+        NG: [{code:"044",name:"Access Bank"},{code:"023",name:"Citibank Nigeria"},{code:"063",name:"Diamond Bank"},{code:"050",name:"Ecobank"},{code:"084",name:"Enterprise Bank"},{code:"070",name:"Fidelity Bank"},{code:"011",name:"First Bank"},{code:"214",name:"FCMB"},{code:"058",name:"GTBank"},{code:"030",name:"Heritage Bank"},{code:"301",name:"Jaiz Bank"},{code:"082",name:"Keystone Bank"},{code:"076",name:"Polaris Bank"},{code:"039",name:"Stanbic IBTC"},{code:"232",name:"Sterling Bank"},{code:"032",name:"Union Bank"},{code:"033",name:"UBA"},{code:"215",name:"Unity Bank"},{code:"035",name:"Wema Bank"},{code:"057",name:"Zenith Bank"}],
+        GH: [{code:"GCB",name:"GCB Bank"},{code:"ABSA",name:"Absa Bank Ghana"},{code:"ECO",name:"Ecobank Ghana"},{code:"FBN",name:"FBN Bank Ghana"},{code:"SCB",name:"Standard Chartered"},{code:"SBG",name:"Stanbic Bank Ghana"}],
+        KE: [{code:"01",name:"Kenya Commercial Bank"},{code:"02",name:"Standard Chartered"},{code:"03",name:"Barclays Bank"},{code:"10",name:"Prime Bank"},{code:"11",name:"Co-operative Bank"},{code:"12",name:"National Bank of Kenya"},{code:"68",name:"Equity Bank"}],
+      };
+      banks = fallbacks[country] || [];
+    }
+    res.json({ country, banks });
   } catch (err) { next(err); }
 });

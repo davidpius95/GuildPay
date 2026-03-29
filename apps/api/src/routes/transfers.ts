@@ -7,19 +7,20 @@ import { AppError } from "../middleware/error";
 import * as nium from "../services/nium";
 import * as flw from "../services/flutterwave";
 import { selectRoute, calculateFee, selectFxProvider, getAvailableCorridors, getCorridorRoutes } from "../services/payment-router";
+import { isDemoMode } from "../config/providers";
 import { KYC_LIMITS } from "@guildpay/shared";
 
 export const transferRouter = Router();
 
 // ─── Resilient FX: tries provider → fallback provider → database rates ───
-async function getRate(from: string, to: string, amount: number): Promise<{ exchangeRate: number; toAmount: number; provider: string }> {
+async function getRate(from: string, to: string, amount: number): Promise<{ exchangeRate: number; toAmount: number; provider: string; quoteId?: string }> {
   const fxProvider = selectFxProvider(from, to);
 
   // Try primary provider
   try {
     if (fxProvider === "nium") {
       const quote = await nium.getFxQuote({ sourceCurrency: from, destinationCurrency: to, sourceAmount: amount });
-      return { exchangeRate: quote.exchangeRate, toAmount: quote.destinationAmount, provider: "nium" };
+      return { exchangeRate: quote.exchangeRate, toAmount: quote.destinationAmount, provider: "nium", quoteId: quote.quoteId };
     } else {
       const rate = await flw.getExchangeRate({ from, to, amount });
       return { exchangeRate: rate.data.rate, toAmount: rate.data.destination.amount, provider: "flutterwave" };
@@ -35,7 +36,7 @@ async function getRate(from: string, to: string, amount: number): Promise<{ exch
       return { exchangeRate: rate.data.rate, toAmount: rate.data.destination.amount, provider: "flutterwave" };
     } else {
       const quote = await nium.getFxQuote({ sourceCurrency: from, destinationCurrency: to, sourceAmount: amount });
-      return { exchangeRate: quote.exchangeRate, toAmount: quote.destinationAmount, provider: "nium" };
+      return { exchangeRate: quote.exchangeRate, toAmount: quote.destinationAmount, provider: "nium", quoteId: quote.quoteId };
     }
   } catch (e) {
     console.warn(`[FX] Both providers failed for ${from}→${to}, using database rates`);
@@ -123,6 +124,32 @@ transferRouter.post(
         throw new AppError("Recipient not found", 404, "RECIPIENT_NOT_FOUND");
       }
 
+      // ── Pre-validate recipient account (Nium Verify / Flutterwave Resolve) ──
+      try {
+        if (recipient.accountNumber && recipient.bankCode) {
+          const useFlw = recipient.countryCode === "NG" || recipient.countryCode === "GH" || recipient.countryCode === "KE";
+          if (useFlw) {
+            await flw.resolveAccount({ account_number: recipient.accountNumber, account_bank: recipient.bankCode });
+          } else {
+            const walletForVerify = await prisma.wallet.findUnique({ where: { userId } });
+            await nium.verifyAccount({
+              customerHashId: (walletForVerify as any)?.niumCustomerHashId || "",
+              destinationCountry: recipient.countryCode,
+              payoutMethod: "LOCAL",
+              bankCode: recipient.bankCode,
+              accountNumber: recipient.accountNumber,
+            });
+          }
+          console.log(`[SEND] Account pre-validated for recipient ${recipient.name}`);
+        }
+      } catch (verifyErr: any) {
+        console.warn(`[SEND] Account verification failed: ${verifyErr.message}`);
+        // Non-blocking in demo mode, blocking in production
+        if (!isDemoMode()) {
+          throw new AppError("Recipient account validation failed. Please verify the account details.", 400, "ACCOUNT_VALIDATION_FAILED");
+        }
+      }
+
       // ── Check wallet balance ──
       const wallet = await prisma.wallet.findUnique({
         where: { userId },
@@ -153,10 +180,12 @@ transferRouter.post(
       let exchangeRate: number | null = null;
       let toAmount = amount;
 
+      let fxQuoteId: string | undefined;
       if (targetCurrency !== currency) {
         const fx = await getRate(currency, targetCurrency, amount);
         exchangeRate = fx.exchangeRate;
         toAmount = fx.toAmount;
+        fxQuoteId = fx.quoteId;
       }
 
       // ── Create transaction + lock funds ──
@@ -216,6 +245,7 @@ transferRouter.post(
               mobileNumber: recipient.mobileNumber || undefined,
               email: recipient.email || undefined,
             },
+            quoteId: fxQuoteId,
             idempotencyKey: transaction.id,
           });
 
@@ -273,8 +303,26 @@ transferRouter.post(
           ]);
         }
       } catch (providerErr: any) {
-        // Provider dispatch failed — in sandbox mode, simulate completion instead of failing
-        console.warn(`[SEND] Provider dispatch failed: ${providerErr.message}. Simulating sandbox completion.`);
+        console.warn(`[SEND] Provider dispatch failed: ${providerErr.message}`);
+        if (!isDemoMode()) {
+          // In production, fail the transaction and release locked funds
+          await prisma.$transaction([
+            prisma.walletBalance.update({
+              where: { walletId_currency: { walletId: wallet.id, currency } },
+              data: { locked: { decrement: amount + fee } },
+            }),
+            prisma.transaction.update({
+              where: { id: transaction.id },
+              data: { status: "FAILED", failedReason: providerErr.message, failedAt: new Date() },
+            }),
+            prisma.transferTracking.create({
+              data: { transactionId: transaction.id, status: "failed", message: `Provider error: ${providerErr.message}` },
+            }),
+          ]);
+          return res.status(502).json({ error: "Payment provider unavailable", transactionId: transaction.id, status: "FAILED" });
+        }
+        // Demo mode: simulate completion
+        console.log(`[SEND] Demo mode — simulating sandbox completion.`);
 
         await prisma.$transaction([
           // Deduct balance (release lock and deduct actual amount)
@@ -600,10 +648,28 @@ transferRouter.post("/exchange", async (req: AuthRequest, res: Response, next: N
       throw new AppError("Invalid PIN", 401, "INVALID_PIN");
     }
 
-    // Get FX rate (resilient)
+    // Get FX rate (resilient) with locked quoteId
     const fx = await getRate(fromCurrency, toCurrency, amount);
     const exchangeRate = fx.exchangeRate;
     const toAmount = fx.toAmount;
+
+    // Execute FX conversion on Nium if quoteId available (locks the rate)
+    if (fx.quoteId && fx.provider === "nium") {
+      try {
+        const walletForFx = await prisma.wallet.findUnique({ where: { userId } });
+        await nium.executeFxConversion({
+          customerHashId: (walletForFx as any)?.niumCustomerHashId || "",
+          walletHashId: (walletForFx as any)?.niumWalletHashId || "",
+          quoteId: fx.quoteId,
+          sourceCurrency: fromCurrency,
+          destinationCurrency: toCurrency,
+          sourceAmount: amount,
+        });
+        console.log(`[EXCHANGE] Nium FX conversion executed with quoteId: ${fx.quoteId}`);
+      } catch (fxErr: any) {
+        console.warn(`[EXCHANGE] Nium FX conversion failed: ${fxErr.message}, proceeding with quoted rate`);
+      }
+    }
 
     const fee = Math.round(amount * 0.005 * 100) / 100;
 
@@ -778,6 +844,174 @@ transferRouter.post("/receive/link", async (req: AuthRequest, res: Response, nex
     next(err);
   }
 });
+
+// ─── POST /refund — Refund a completed transaction ───
+transferRouter.post(
+  "/refund",
+  requireKyc("TIER_1"),
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const schema = z.object({
+        transactionId: z.string(),
+        amount: z.number().positive().optional(), // partial refund
+        reason: z.string().max(200).optional(),
+        pin: z.string().length(6),
+      });
+
+      const { transactionId, amount: refundAmount, reason, pin } = schema.parse(req.body);
+      const userId = req.user!.id;
+
+      // Verify PIN
+      const user = await prisma.user.findUnique({ where: { id: userId }, select: { pin: true } });
+      if (!user?.pin || !(await bcrypt.compare(pin, user.pin))) {
+        throw new AppError("Invalid PIN", 401, "INVALID_PIN");
+      }
+
+      // Find the transaction
+      const transaction = await prisma.transaction.findFirst({
+        where: { id: transactionId, userId },
+      });
+      if (!transaction) {
+        throw new AppError("Transaction not found", 404, "TXN_NOT_FOUND");
+      }
+      if (transaction.status !== "COMPLETED") {
+        throw new AppError("Only completed transactions can be refunded", 400, "NOT_REFUNDABLE");
+      }
+      if (!["TOPUP", "BILL_PAYMENT"].includes(transaction.type)) {
+        throw new AppError("This transaction type cannot be refunded", 400, "NOT_REFUNDABLE_TYPE");
+      }
+
+      const amountToRefund = refundAmount || Number(transaction.amount);
+
+      // Attempt refund via provider
+      let providerRefundRef: string | null = null;
+      if (transaction.provider === "flutterwave" && transaction.providerRef) {
+        try {
+          const refund = await flw.refundTransaction(
+            parseInt(transaction.providerRef),
+            refundAmount
+          );
+          providerRefundRef = refund.data.flw_ref;
+        } catch (providerErr: any) {
+          if (!isDemoMode()) {
+            throw new AppError(`Refund failed: ${providerErr.message}`, 502, "REFUND_PROVIDER_ERROR");
+          }
+          console.log(`[REFUND] Demo mode — provider refund failed: ${providerErr.message}`);
+          providerRefundRef = `sandbox_refund_${Date.now()}`;
+        }
+      } else {
+        if (!isDemoMode()) {
+          throw new AppError("Refunds are only available for Flutterwave transactions", 400, "REFUND_NOT_SUPPORTED");
+        }
+        providerRefundRef = `sandbox_refund_${Date.now()}`;
+      }
+
+      // Credit wallet and record refund transaction
+      const wallet = await prisma.wallet.findUnique({
+        where: { userId },
+        include: { balances: { where: { currency: transaction.currency } } },
+      });
+
+      if (!wallet?.balances[0]) {
+        throw new AppError("Wallet balance not found", 404, "BALANCE_NOT_FOUND");
+      }
+
+      const refundTxn = await prisma.$transaction(async (tx) => {
+        await tx.walletBalance.update({
+          where: { walletId_currency: { walletId: wallet.id, currency: transaction.currency } },
+          data: { balance: { increment: amountToRefund } },
+        });
+
+        return tx.transaction.create({
+          data: {
+            userId,
+            type: "TOPUP", // Refund credited as top-up
+            status: "COMPLETED",
+            amount: amountToRefund,
+            currency: transaction.currency,
+            provider: transaction.provider,
+            providerRef: providerRefundRef,
+            rail: "INTERNAL",
+            completedAt: new Date(),
+            note: `Refund for ${transaction.id}${reason ? ': ' + reason : ''}`,
+          },
+        });
+      });
+
+      // Create notification
+      await prisma.notification.create({
+        data: {
+          userId,
+          type: "TRANSACTION",
+          title: "Refund Processed",
+          body: `${transaction.currency} ${amountToRefund.toFixed(2)} has been refunded to your wallet.`,
+          data: { transactionId: refundTxn.id },
+        },
+      });
+
+      res.status(201).json({
+        refundId: refundTxn.id,
+        originalTransactionId: transactionId,
+        amount: amountToRefund,
+        currency: transaction.currency,
+        status: "COMPLETED",
+        providerRef: providerRefundRef,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// ─── POST /sub-accounts — Create agent/partner sub-account for commission splits ───
+transferRouter.post(
+  "/sub-accounts",
+  requireKyc("TIER_1"),
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const schema = z.object({
+        accountBank: z.string(),
+        accountNumber: z.string(),
+        businessName: z.string(),
+        businessEmail: z.string().email(),
+        country: z.string().length(2),
+        splitType: z.enum(["flat", "percentage"]).default("percentage"),
+        splitValue: z.number().positive(),
+      });
+
+      const data = schema.parse(req.body);
+
+      let subAccount;
+      try {
+        subAccount = await flw.createSubAccount({
+          account_bank: data.accountBank,
+          account_number: data.accountNumber,
+          business_name: data.businessName,
+          split_type: data.splitType,
+          split_value: data.splitValue,
+          business_email: data.businessEmail,
+          country: data.country,
+        });
+      } catch (providerErr: any) {
+        if (!isDemoMode()) {
+          throw new AppError(`Sub-account creation failed: ${providerErr.message}`, 502, "SUBACCOUNT_PROVIDER_ERROR");
+        }
+        console.log(`[SUBACCOUNT] Demo mode — creation failed: ${providerErr.message}`);
+        subAccount = { data: { id: Date.now(), subaccount_id: `sandbox_sub_${Date.now()}` } };
+      }
+
+      res.status(201).json({
+        subAccountId: subAccount.data.subaccount_id,
+        providerId: subAccount.data.id,
+        businessName: data.businessName,
+        splitType: data.splitType,
+        splitValue: data.splitValue,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 
 // ─── POST /verify-account — Pre-validate recipient bank account ───
 transferRouter.post("/verify-account", async (req: AuthRequest, res: Response, next: NextFunction) => {

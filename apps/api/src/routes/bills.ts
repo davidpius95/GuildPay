@@ -4,6 +4,7 @@ import { prisma } from "../config/db";
 import { AuthRequest } from "../middleware/auth";
 import { AppError } from "../middleware/error";
 import * as flw from "../services/flutterwave";
+import { isDemoMode } from "../config/providers";
 
 export const billRouter = Router();
 
@@ -18,6 +19,7 @@ billRouter.post("/pay", async (req: AuthRequest, res: Response, next: NextFuncti
       currency: z.string().default("NGN"),
       country: z.string().default("NG"),
       itemCode: z.string().optional(),
+      recurrence: z.enum(["ONCE", "WEEKLY", "MONTHLY"]).default("ONCE"),
     });
 
     const data = schema.parse(req.body);
@@ -54,10 +56,13 @@ billRouter.post("/pay", async (req: AuthRequest, res: Response, next: NextFuncti
         amount: data.amount,
         type: data.billerCode,
         reference: bill.id,
-        recurrence: "ONCE",
+        recurrence: data.recurrence,
       });
     } catch (providerErr) {
-      console.log(`[BILLS] Flutterwave bill payment failed, using sandbox fallback:`, (providerErr as Error).message);
+      if (!isDemoMode()) {
+        throw new AppError("Bill payment provider unavailable. Please try again later.", 502, "BILL_PROVIDER_ERROR");
+      }
+      console.log(`[BILLS] Demo mode — Flutterwave bill payment failed, using sandbox fallback:`, (providerErr as Error).message);
       payment = { data: { flw_ref: `sandbox_bill_${Date.now()}`, reference: bill.id } };
     }
 
@@ -138,7 +143,10 @@ billRouter.post("/airtime", async (req: AuthRequest, res: Response, next: NextFu
         biller_name: data.provider,
       });
     } catch (providerErr) {
-      console.log(`[BILLS] Flutterwave airtime failed, using sandbox fallback:`, (providerErr as Error).message);
+      if (!isDemoMode()) {
+        throw new AppError("Airtime provider unavailable. Please try again later.", 502, "AIRTIME_PROVIDER_ERROR");
+      }
+      console.log(`[BILLS] Demo mode — Flutterwave airtime failed, using sandbox fallback:`, (providerErr as Error).message);
       payment = { data: { flw_ref: `sandbox_airtime_${Date.now()}`, reference: `airtime_${Date.now()}` } };
     }
 
@@ -199,7 +207,10 @@ billRouter.get("/categories", async (_req: AuthRequest, res: Response, next: Nex
     try {
       categories = await flw.getBillCategories();
     } catch (providerErr) {
-      console.log(`[BILLS] Flutterwave categories failed, using sandbox fallback`);
+      if (!isDemoMode()) {
+        throw new AppError("Bill categories unavailable. Please try again later.", 502, "BILLS_PROVIDER_ERROR");
+      }
+      console.log(`[BILLS] Demo mode — Flutterwave categories failed, using sandbox fallback`);
       categories = { data: [
         { biller_code: "BIL099", name: "MTN Nigeria Airtime", country: "NG", biller_name: "AIRTIME", item_code: "AT099" },
         { biller_code: "BIL110", name: "MTN Nigeria Data", country: "NG", biller_name: "DATA_BUNDLE", item_code: "MD110" },
@@ -230,8 +241,11 @@ billRouter.post("/validate", async (req: AuthRequest, res: Response, next: NextF
         code: billerCode,
       });
     } catch (providerErr) {
-      console.log(`[BILLS] Flutterwave validate failed, using sandbox fallback:`, (providerErr as Error).message);
-      result = { data: { response_code: "00", name: "Sandbox Customer", address: "Lagos, Nigeria", response_message: "Customer validated (sandbox)" } };
+      if (!isDemoMode()) {
+        throw new AppError("Bill validation service unavailable. Please try again later.", 502, "VALIDATE_PROVIDER_ERROR");
+      }
+      console.log(`[BILLS] Demo mode — Flutterwave validate failed, using sandbox fallback:`, (providerErr as Error).message);
+      result = { data: { response_code: "00", name: "Sandbox Customer", address: "Lagos, Nigeria", response_message: "Customer validated (demo mode)" } };
     }
 
     res.json({

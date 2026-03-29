@@ -164,6 +164,50 @@ authRouter.post(
   }
 );
 
+// ─── POST /resend-otp ───
+authRouter.post(
+  "/resend-otp",
+  authenticate,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user!.id;
+
+      // Check cooldown — last OTP must be > 45s ago
+      const lastOtp = await prisma.otpCode.findFirst({
+        where: { userId, used: false },
+        orderBy: { createdAt: "desc" },
+      });
+      if (lastOtp && Date.now() - lastOtp.createdAt.getTime() < 45000) {
+        const wait = Math.ceil((45000 - (Date.now() - lastOtp.createdAt.getTime())) / 1000);
+        throw new AppError(`Please wait ${wait}s before requesting a new code`, 429, "OTP_COOLDOWN");
+      }
+
+      // Invalidate old OTPs
+      await prisma.otpCode.updateMany({
+        where: { userId, used: false },
+        data: { used: true },
+      });
+
+      // Generate new OTP
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      await prisma.otpCode.create({
+        data: {
+          userId,
+          code: otpCode,
+          type: "EMAIL_VERIFY",
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+        },
+      });
+
+      console.log(`[OTP] Resent verification code for user ${userId}: ${otpCode}`);
+
+      res.json({ message: "Verification code sent", expiresIn: 600 });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 // ─── POST /login ───
 authRouter.post("/login", async (req: Request, res: Response, next: NextFunction) => {
   try {

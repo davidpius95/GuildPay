@@ -512,14 +512,272 @@
 
     .profile-edit-sheet .field { margin-bottom:16px; }
     .profile-section-title { font-size:14px; font-weight:700; color:var(--t1); margin:20px 0 12px; text-transform:uppercase; letter-spacing:0.5px; }
+
+    /* ── Phase 7: Onboarding ── */
+    #screen-welcome.active { display:flex; flex-direction:column; min-height:100vh; background:var(--white); padding:0; }
+    .welcome-carousel { flex:1; position:relative; overflow:hidden; }
+    .welcome-slide { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 32px; opacity:0; transform:translateX(60px); transition:all 0.4s ease; pointer-events:none; }
+    .welcome-slide.active { opacity:1; transform:translateX(0); pointer-events:auto; }
+    .welcome-slide.exit { opacity:0; transform:translateX(-60px); }
+    .welcome-illust { font-size:80px; margin-bottom:32px; width:140px; height:140px; border-radius:70px; display:flex; align-items:center; justify-content:center; }
+    .welcome-h { font-size:26px; font-weight:700; color:var(--text); text-align:center; margin-bottom:12px; line-height:1.2; }
+    .welcome-p { font-size:15px; color:var(--t2); text-align:center; line-height:1.5; max-width:300px; }
+    .welcome-dots { display:flex; justify-content:center; gap:8px; padding:16px 0; }
+    .welcome-dot { width:8px; height:8px; border-radius:4px; background:var(--border); transition:all 0.3s; }
+    .welcome-dot.active { width:24px; background:var(--p); }
+    .welcome-footer { padding:20px 28px 40px; }
+    .welcome-footer .btn { margin-bottom:12px; }
+    .welcome-link { text-align:center; font-size:14px; color:var(--t2); cursor:pointer; padding:8px; }
+    .welcome-link span { color:var(--p); font-weight:600; }
+
+    #screen-signup.active { display:flex; flex-direction:column; min-height:100vh; background:var(--white); padding:32px 28px 40px; }
+    .signup-header { margin-bottom:28px; }
+    .signup-back { background:none; border:none; font-size:22px; cursor:pointer; color:var(--t2); padding:4px; margin-bottom:12px; }
+    .signup-title { font-size:24px; font-weight:700; }
+    .signup-sub { font-size:14px; color:var(--t2); margin-top:4px; }
+    .signup-divider { display:flex; align-items:center; gap:16px; margin:20px 0; font-size:13px; color:var(--t3); }
+    .signup-divider::before,.signup-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+    .signup-terms { font-size:12px; color:var(--t3); text-align:center; margin-top:16px; line-height:1.5; }
+    .signup-terms a { color:var(--p); text-decoration:none; }
+    .pw-strength { height:4px; border-radius:2px; background:var(--border); margin-top:6px; overflow:hidden; }
+    .pw-strength-fill { height:100%; border-radius:2px; transition:width 0.3s, background 0.3s; }
+
+    #screen-otp.active { display:flex; flex-direction:column; min-height:100vh; background:var(--white); padding:32px 28px 40px; }
+    .otp-header { text-align:center; margin-bottom:32px; }
+    .otp-icon { font-size:48px; margin-bottom:16px; }
+    .otp-title { font-size:22px; font-weight:700; margin-bottom:8px; }
+    .otp-sub { font-size:14px; color:var(--t2); line-height:1.5; }
+    .otp-sub strong { color:var(--text); }
+    .otp-inputs { display:flex; justify-content:center; gap:10px; margin-bottom:24px; }
+    .otp-inputs input { width:48px; height:56px; text-align:center; font-size:22px; font-weight:700; border:2px solid var(--border); border-radius:12px; outline:none; font-family:inherit; transition:border 0.2s; }
+    .otp-inputs input:focus { border-color:var(--p); box-shadow:0 0 0 3px rgba(92,10,42,0.08); }
+    .otp-inputs input.filled { border-color:var(--p); background:var(--p-bg); }
+    .otp-resend { text-align:center; font-size:14px; color:var(--t2); margin-top:16px; }
+    .otp-resend-btn { color:var(--p); font-weight:600; cursor:pointer; background:none; border:none; font-size:14px; font-family:inherit; }
+    .otp-resend-btn:disabled { color:var(--t3); cursor:not-allowed; }
+
+    #screen-setup-profile.active { display:flex; flex-direction:column; min-height:100vh; background:var(--white); padding:32px 28px 40px; }
+    .setup-avatar-area { display:flex; flex-direction:column; align-items:center; margin-bottom:28px; }
+    .setup-avatar { width:80px; height:80px; border-radius:40px; background:var(--p); color:#fff; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:700; margin-bottom:8px; }
+    .setup-avatar-label { font-size:13px; color:var(--p); font-weight:600; cursor:pointer; }
+
+    #screen-walkthrough.active { display:flex; flex-direction:column; min-height:100vh; background:var(--white); padding:0; }
+    .wt-carousel { flex:1; position:relative; overflow:hidden; }
+    .wt-slide { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 32px; opacity:0; transform:translateX(60px); transition:all 0.4s ease; pointer-events:none; }
+    .wt-slide.active { opacity:1; transform:translateX(0); pointer-events:auto; }
+    .wt-slide.exit { opacity:0; transform:translateX(-60px); }
+    .wt-icon { font-size:64px; margin-bottom:24px; width:120px; height:120px; border-radius:60px; background:var(--p-bg); display:flex; align-items:center; justify-content:center; }
+    .wt-title { font-size:22px; font-weight:700; text-align:center; margin-bottom:8px; }
+    .wt-desc { font-size:14px; color:var(--t2); text-align:center; line-height:1.5; max-width:280px; }
+    .wt-footer { padding:20px 28px 40px; }
+
+    #screen-forgot.active { display:flex; flex-direction:column; min-height:100vh; background:var(--white); padding:32px 28px 40px; }
+
+    /* ── Phase 8: History + Tracking + Polish ── */
+    .filter-tabs { display:flex; gap:6px; overflow-x:auto; padding:0 0 12px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+    .filter-tabs::-webkit-scrollbar { display:none; }
+    .filter-tab { padding:8px 16px; border-radius:20px; font-size:13px; font-weight:600; white-space:nowrap; cursor:pointer; border:1.5px solid var(--border); background:var(--white); color:var(--t2); transition:all 0.2s; flex-shrink:0; }
+    .filter-tab.active { background:var(--p); color:#fff; border-color:var(--p); }
+    .date-range { display:flex; gap:8px; margin-bottom:12px; }
+    .date-range input { flex:1; padding:10px 12px; border:1.5px solid var(--border); border-radius:10px; font-size:13px; font-family:inherit; background:var(--white); }
+    .date-range input:focus { border-color:var(--p); outline:none; }
+    .date-range-toggle { font-size:13px; color:var(--p); font-weight:600; cursor:pointer; margin-bottom:8px; display:inline-flex; align-items:center; gap:4px; }
+
+    .txd-share-row { display:flex; gap:8px; margin-top:16px; }
+    .txd-share-btn { flex:1; padding:12px; border-radius:12px; border:1.5px solid var(--border); background:var(--white); font-size:13px; font-weight:600; cursor:pointer; text-align:center; transition:all 0.2s; font-family:inherit; }
+    .txd-share-btn:active { transform:scale(0.97); }
+    .txd-fee-breakdown { background:var(--bg); border-radius:10px; padding:12px; margin-top:12px; }
+    .txd-fee-row { display:flex; justify-content:space-between; font-size:13px; padding:4px 0; }
+    .txd-fee-total { border-top:1px solid var(--border); padding-top:8px; margin-top:4px; font-weight:700; }
+
+    #screen-help.active { display:block; }
+    .help-search { position:relative; margin-bottom:16px; }
+    .help-search input { width:100%; padding:14px 16px 14px 44px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-size:14px; font-family:inherit; background:var(--white); outline:none; }
+    .help-search input:focus { border-color:var(--p); }
+    .help-search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:18px; color:var(--t3); }
+    .faq-category { margin-bottom:20px; }
+    .faq-category-title { font-size:14px; font-weight:700; color:var(--t1); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px; }
+    .faq-item { border:1px solid var(--border); border-radius:12px; margin-bottom:8px; overflow:hidden; background:var(--white); }
+    .faq-q { padding:14px 16px; font-size:14px; font-weight:600; cursor:pointer; display:flex; justify-content:space-between; align-items:center; }
+    .faq-q .faq-arrow { transition:transform 0.2s; font-size:12px; color:var(--t3); }
+    .faq-item.open .faq-q .faq-arrow { transform:rotate(180deg); }
+    .faq-a { padding:0 16px; max-height:0; overflow:hidden; transition:max-height 0.3s ease, padding 0.3s; font-size:13px; color:var(--t2); line-height:1.6; }
+    .faq-item.open .faq-a { max-height:300px; padding:0 16px 14px; }
+    .help-contact { margin-top:24px; padding:20px; background:var(--p-bg); border-radius:16px; text-align:center; }
+    .help-contact-title { font-size:16px; font-weight:700; margin-bottom:4px; }
+    .help-contact-sub { font-size:13px; color:var(--t2); margin-bottom:12px; }
+
+    .skeleton-row { height:56px; border-radius:12px; margin-bottom:8px; }
+    .skeleton-card { height:120px; border-radius:16px; margin-bottom:12px; }
+    .skeleton-text { height:14px; border-radius:4px; margin-bottom:8px; }
+    .skeleton-text.w60 { width:60%; }
+    .skeleton-text.w40 { width:40%; }
+    .skeleton-text.w80 { width:80%; }
+
+    .tx-count { font-size:12px; color:var(--t3); margin-bottom:8px; }
   </style>
 </head>
 <body>
 <div class="app" id="app">
   <div id="toast" class="toast"></div>
 
+  <!-- ════════════ WELCOME CAROUSEL ════════════ -->
+  <div class="screen active" id="screen-welcome">
+    <div class="welcome-carousel">
+      <div class="welcome-slide active" data-slide="0">
+        <div class="welcome-illust" style="background:var(--p-bg);">&#127758;</div>
+        <div class="welcome-h">Send Money<br>Across Borders</div>
+        <div class="welcome-p">Fast, affordable transfers between Africa and the Gulf. Send to 35+ countries in minutes.</div>
+      </div>
+      <div class="welcome-slide" data-slide="1">
+        <div class="welcome-illust" style="background:var(--s-bg);">&#128179;</div>
+        <div class="welcome-h">Virtual Cards<br>& Bill Pay</div>
+        <div class="welcome-p">Get USD, NGN & AED virtual cards. Pay bills, buy airtime, and manage your money in one app.</div>
+      </div>
+      <div class="welcome-slide" data-slide="2">
+        <div class="welcome-illust" style="background:var(--i-bg);">&#128274;</div>
+        <div class="welcome-h">Secure &<br>Compliant</div>
+        <div class="welcome-p">Bank-grade security with Nium global infrastructure. Licensed, regulated, and KYC-verified.</div>
+      </div>
+    </div>
+    <div class="welcome-dots" id="welcome-dots">
+      <div class="welcome-dot active"></div>
+      <div class="welcome-dot"></div>
+      <div class="welcome-dot"></div>
+    </div>
+    <div class="welcome-footer">
+      <button class="btn btn-p" onclick="nav('screen-signup')">Get Started</button>
+      <div class="welcome-link" onclick="nav('screen-login')">Already have an account? <span>Sign In</span></div>
+    </div>
+  </div>
+
+  <!-- ════════════ SIGN UP ════════════ -->
+  <div class="screen" id="screen-signup" style="padding-bottom:0;">
+    <div class="signup-header">
+      <button class="signup-back" onclick="nav('screen-welcome')">&#8592;</button>
+      <div class="signup-title">Create Account</div>
+      <div class="signup-sub">Join thousands sending money smarter</div>
+    </div>
+    <div class="field"><label>Email</label><input type="email" id="inp-signup-email" placeholder="you@email.com" autocomplete="email"></div>
+    <div class="field"><label>Phone (optional)</label><input type="tel" id="inp-signup-phone" placeholder="+234 800 000 0000"></div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="inp-signup-pass" placeholder="Min 8 characters" oninput="checkPwStrength(this.value)">
+      <div class="pw-strength"><div class="pw-strength-fill" id="pw-bar" style="width:0;"></div></div>
+      <div class="hint" id="pw-hint"></div>
+    </div>
+    <div class="field"><label>Referral Code (optional)</label><input type="text" id="inp-signup-ref" placeholder="Enter code"></div>
+    <button class="btn btn-p mt-16" id="btn-signup" onclick="doSignup()">Create Account</button>
+    <div class="signup-terms">By creating an account, you agree to our<br><a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></div>
+    <div class="welcome-link mt-16" onclick="nav('screen-login')" style="padding-bottom:20px;">Already have an account? <span>Sign In</span></div>
+  </div>
+
+  <!-- ════════════ OTP VERIFICATION ════════════ -->
+  <div class="screen" id="screen-otp" style="padding-bottom:0;">
+    <div class="otp-header">
+      <div class="otp-icon">&#128231;</div>
+      <div class="otp-title">Verify Your Email</div>
+      <div class="otp-sub">We sent a 6-digit code to<br><strong id="otp-email-display">your email</strong></div>
+    </div>
+    <div class="otp-inputs" id="otp-inputs">
+      <input type="text" maxlength="1" inputmode="numeric" data-idx="0">
+      <input type="text" maxlength="1" inputmode="numeric" data-idx="1">
+      <input type="text" maxlength="1" inputmode="numeric" data-idx="2">
+      <input type="text" maxlength="1" inputmode="numeric" data-idx="3">
+      <input type="text" maxlength="1" inputmode="numeric" data-idx="4">
+      <input type="text" maxlength="1" inputmode="numeric" data-idx="5">
+    </div>
+    <button class="btn btn-p" id="btn-verify-otp" onclick="doVerifyOtp()">Verify</button>
+    <div class="otp-resend" id="otp-resend-area">
+      <span id="otp-timer">Resend code in 45s</span>
+      <button class="otp-resend-btn" id="otp-resend-btn" onclick="doResendOtp()" disabled style="display:none;">Resend Code</button>
+    </div>
+    <div style="text-align:center;margin-top:24px;">
+      <button class="btn-ghost" onclick="skipOtp()" style="font-size:13px;color:var(--t3);border:none;background:none;cursor:pointer;">Skip for now</button>
+    </div>
+  </div>
+
+  <!-- ════════════ PROFILE SETUP ════════════ -->
+  <div class="screen" id="screen-setup-profile" style="padding-bottom:0;">
+    <div class="signup-header">
+      <div class="signup-title">Set Up Your Profile</div>
+      <div class="signup-sub">Tell us a bit about yourself</div>
+    </div>
+    <div class="setup-avatar-area">
+      <div class="setup-avatar" id="setup-avatar-display">?</div>
+      <div class="setup-avatar-label">Add Photo</div>
+    </div>
+    <div class="field"><label>First Name</label><input type="text" id="inp-setup-fname" placeholder="John"></div>
+    <div class="field"><label>Last Name</label><input type="text" id="inp-setup-lname" placeholder="Doe"></div>
+    <div class="field"><label>Country</label>
+      <select id="inp-setup-country">
+        <option value="">Select your country</option>
+        <option value="NG">Nigeria</option>
+        <option value="GH">Ghana</option>
+        <option value="KE">Kenya</option>
+        <option value="QA">Qatar</option>
+        <option value="AE">UAE</option>
+        <option value="SA">Saudi Arabia</option>
+        <option value="GB">United Kingdom</option>
+      </select>
+    </div>
+    <button class="btn btn-p mt-16" id="btn-setup-profile" onclick="doSetupProfile()">Continue</button>
+    <div style="text-align:center;margin-top:12px;">
+      <button class="btn-ghost" onclick="skipSetup()" style="font-size:13px;color:var(--t3);border:none;background:none;cursor:pointer;">Skip for now</button>
+    </div>
+  </div>
+
+  <!-- ════════════ WALKTHROUGH ════════════ -->
+  <div class="screen" id="screen-walkthrough" style="padding-bottom:0;">
+    <div class="wt-carousel">
+      <div class="wt-slide active" data-wt="0">
+        <div class="wt-icon">&#128176;</div>
+        <div class="wt-title">Your Multi-Currency Wallet</div>
+        <div class="wt-desc">Hold USD, NGN, AED, GBP and more. Convert between currencies at live rates with zero hidden fees.</div>
+      </div>
+      <div class="wt-slide" data-wt="1">
+        <div class="wt-icon">&#9889;</div>
+        <div class="wt-title">Send in Seconds</div>
+        <div class="wt-desc">Send to bank accounts, mobile wallets, or cash pickup across 35+ African and Gulf countries.</div>
+      </div>
+      <div class="wt-slide" data-wt="2">
+        <div class="wt-icon">&#128179;</div>
+        <div class="wt-title">Virtual Cards & Bills</div>
+        <div class="wt-desc">Get instant virtual cards for online shopping. Pay airtime, data, electricity and TV bills from your wallet.</div>
+      </div>
+    </div>
+    <div class="welcome-dots" id="wt-dots">
+      <div class="welcome-dot active"></div>
+      <div class="welcome-dot"></div>
+      <div class="welcome-dot"></div>
+    </div>
+    <div class="wt-footer">
+      <button class="btn btn-p" id="wt-next-btn" onclick="wtNext()">Next</button>
+      <div style="text-align:center;margin-top:8px;">
+        <button class="btn-ghost" onclick="wtFinish()" style="font-size:13px;color:var(--t3);border:none;background:none;cursor:pointer;">Skip Tour</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ FORGOT PASSWORD ════════════ -->
+  <div class="screen" id="screen-forgot" style="padding-bottom:0;">
+    <div class="signup-header">
+      <button class="signup-back" onclick="nav('screen-login')">&#8592;</button>
+      <div class="signup-title">Reset Password</div>
+      <div class="signup-sub">Enter your email to receive a reset code</div>
+    </div>
+    <div class="field"><label>Email</label><input type="email" id="inp-forgot-email" placeholder="you@email.com"></div>
+    <button class="btn btn-p mt-16" id="btn-forgot" onclick="doForgotPassword()">Send Reset Code</button>
+    <div id="forgot-success" style="display:none;text-align:center;margin-top:24px;padding:20px;background:var(--s-bg);border-radius:12px;">
+      <div style="font-size:36px;margin-bottom:8px;">&#9993;</div>
+      <div style="font-size:16px;font-weight:600;color:var(--success);">Check your email</div>
+      <div style="font-size:13px;color:var(--t2);margin-top:4px;">If the email is registered, you'll receive a reset code.</div>
+    </div>
+    <div class="welcome-link mt-24" onclick="nav('screen-login')">Back to <span>Sign In</span></div>
+  </div>
+
   <!-- ════════════ LOGIN ════════════ -->
-  <div class="screen active" id="screen-login" style="padding-bottom:0;">
+  <div class="screen" id="screen-login" style="padding-bottom:0;">
     <div class="login-logo"><span>G</span></div>
     <div class="login-title">GuildPay</div>
     <div class="login-sub">Send money across Africa & the Gulf</div>
@@ -527,6 +785,10 @@
     <div class="field"><label>Email</label><input type="email" id="inp-email" value="test@guildpay.com"></div>
     <div class="field"><label>Password</label><input type="password" id="inp-pass" value="Test1234!"></div>
     <button class="btn btn-p mt-16" id="btn-login" onclick="doLogin()">Sign In</button>
+    <div style="display:flex;justify-content:space-between;margin-top:16px;">
+      <div class="welcome-link" onclick="nav('screen-forgot')" style="font-size:13px;"><span>Forgot password?</span></div>
+      <div class="welcome-link" onclick="nav('screen-signup')" style="font-size:13px;">New user? <span>Sign Up</span></div>
+    </div>
     <p class="mt-16" style="font-size:12px;color:var(--t3);text-align:center;">Test credentials pre-filled for sandbox</p>
   </div>
 
@@ -565,8 +827,26 @@
   <div class="screen screen-pad-top" id="screen-wallet">
     <div class="hdr"><h1>Wallet</h1><button class="btn btn-sm btn-s" onclick="openSheet('sh-addcur')">+ Add</button></div>
     <div class="card" id="wallet-list"><div class="loading"><div class="spinner"></div></div></div>
-    <div class="sec"><div class="sec-title">Transaction History</div></div>
+    <div class="sec"><div class="sec-title">Transaction History</div><div class="date-range-toggle" onclick="toggleDateRange()">&#128197; Filter</div></div>
+    <div id="date-range-area" style="display:none;">
+      <div class="date-range">
+        <input type="date" id="txn-date-from" onchange="applyTxnFilters()">
+        <input type="date" id="txn-date-to" onchange="applyTxnFilters()">
+      </div>
+    </div>
+    <div class="filter-tabs" id="txn-filter-tabs">
+      <div class="filter-tab active" data-filter="" onclick="setTxnFilter(this)">All</div>
+      <div class="filter-tab" data-filter="SEND" onclick="setTxnFilter(this)">Sent</div>
+      <div class="filter-tab" data-filter="TOPUP,RECEIVE" onclick="setTxnFilter(this)">Received</div>
+      <div class="filter-tab" data-filter="EXCHANGE" onclick="setTxnFilter(this)">Swaps</div>
+      <div class="filter-tab" data-filter="BILL_PAYMENT" onclick="setTxnFilter(this)">Bills</div>
+      <div class="filter-tab" data-filter="CARD_FUND" onclick="setTxnFilter(this)">Cards</div>
+    </div>
+    <div class="tx-count" id="txn-count"></div>
     <div class="card" id="wallet-txns"><div class="loading"><div class="spinner"></div></div></div>
+    <div id="txn-load-more" style="display:none;text-align:center;margin-top:12px;">
+      <button class="btn btn-sm btn-s" onclick="loadMoreTxns()">Load More</button>
+    </div>
   </div>
 
   <!-- ════════════ CORRIDORS ════════════ -->
@@ -590,6 +870,74 @@
   <div class="screen screen-pad-top" id="screen-notif">
     <div class="hdr"><h1>Notifications</h1><button class="btn btn-sm btn-ghost" onclick="markAllRead()">Mark all read</button></div>
     <div id="notif-list"></div>
+  </div>
+
+  <!-- ════════════ HELP & SUPPORT ════════════ -->
+  <div class="screen screen-pad-top" id="screen-help">
+    <div class="hdr">
+      <button class="btn-icon" onclick="nav('screen-profile')">&#8592;</button>
+      <h1 style="flex:1;">Help & Support</h1>
+    </div>
+    <div class="help-search">
+      <div class="help-search-icon">&#128269;</div>
+      <input type="text" id="help-search-input" placeholder="Search for help..." oninput="filterFaq(this.value)">
+    </div>
+    <div id="faq-list">
+      <div class="faq-category" data-cat="account">
+        <div class="faq-category-title">Account & Security</div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">How do I verify my account?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">Go to Profile > KYC Verification. Complete the 3-step process: personal info, address, and identity document. Sandbox accounts are auto-approved. Production accounts are reviewed within 24 hours.</div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">How do I reset my PIN?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">Go to Profile > Security & PIN. You'll need your current PIN to set a new one. If you've forgotten your PIN, contact support for a reset.</div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">What are KYC tiers?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">Tier 0: Unverified ($500/day, $2,000/month). Tier 1: Basic KYC ($5,000/day, $25,000/month). Tier 2: Full KYC ($25,000/day, $100,000/month). Upgrade by completing identity verification.</div>
+        </div>
+      </div>
+      <div class="faq-category" data-cat="transfers">
+        <div class="faq-category-title">Transfers & Payments</div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">How long do transfers take?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">Gulf to Africa: 80% settle within 15 minutes via our Nium + Ecobank partnership. Local transfers (within Nigeria/Ghana): typically instant. SWIFT transfers: 1-3 business days.</div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">What are the transfer fees?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">Fees vary by corridor and amount. We show the exact fee before you confirm any transfer. There are no hidden charges — the rate you see is the rate you get.</div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">Which countries can I send to?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">We support 35+ countries across Africa and the Gulf. Major corridors include Qatar/UAE to Nigeria, Ghana, Kenya, and South Africa. Check the Send flow for the full list.</div>
+        </div>
+      </div>
+      <div class="faq-category" data-cat="cards">
+        <div class="faq-category-title">Virtual Cards</div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">How do virtual cards work?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">Virtual cards let you shop online anywhere Visa/Mastercard is accepted. Fund your card from your wallet, and spend in USD, NGN, or other supported currencies. You can freeze/unfreeze your card anytime.</div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">Can I use my card for subscriptions?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">Yes! Virtual cards work for recurring payments like Netflix, Spotify, and other online subscriptions. Make sure your card is funded with enough balance to cover the renewal.</div>
+        </div>
+      </div>
+      <div class="faq-category" data-cat="bills">
+        <div class="faq-category-title">Bill Payments</div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">What bills can I pay?<span class="faq-arrow">&#9660;</span></div>
+          <div class="faq-a">Airtime (MTN, Airtel, Glo, 9mobile, Safaricom), data bundles, electricity (Eko, Ikeja), TV cable (DSTV, GoTV, StarTimes), and internet services across Nigeria, Ghana, and Kenya.</div>
+        </div>
+      </div>
+    </div>
+    <div class="help-contact">
+      <div class="help-contact-title">Still need help?</div>
+      <div class="help-contact-sub">Our support team is available 24/7</div>
+      <button class="btn btn-sm btn-p" onclick="toast('Live chat coming soon')">Chat with Support</button>
+      <div style="margin-top:12px;font-size:13px;color:var(--t2);">Or email us at <strong>support@guildpay.com</strong></div>
+    </div>
   </div>
 
   <!-- ════════════ RECIPIENTS ════════════ -->
@@ -1087,9 +1435,9 @@
       <div class="flow-screen" id="kyc-s5">
         <div class="success-screen">
           <div class="bill-success-icon">&#10003;</div>
-          <div class="success-title">KYC Verified!</div>
-          <div class="success-sub">Your account has been upgraded to Tier 1</div>
-          <div style="margin-top:20px;padding:16px;background:#f8f8f8;border-radius:12px;">
+          <div class="success-title">KYC Submitted!</div>
+          <div class="success-sub" id="kyc-success-sub">Your account has been upgraded to Tier 1</div>
+          <div id="kyc-success-details" style="margin-top:20px;padding:16px;background:#f8f8f8;border-radius:12px;text-align:left;">
             <div style="font-size:13px;color:var(--t2);margin-bottom:6px;">Your limits have been increased:</div>
             <div style="font-size:14px;font-weight:600;">Daily: $5,000 &nbsp;|&nbsp; Monthly: $25,000</div>
           </div>
@@ -1572,11 +1920,15 @@ async function api(m,p,b){
 }
 
 function toast(m,t='s'){const e=document.getElementById('toast');e.innerHTML=m;e.className='toast show '+t;setTimeout(()=>e.className='toast',3500);}
+const AUTH_SCREENS=['screen-welcome','screen-login','screen-signup','screen-otp','screen-setup-profile','screen-walkthrough','screen-forgot'];
 function nav(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('.nav-i').forEach(n=>n.classList.toggle('on',n.dataset.s===id));
-  if(id==='screen-wallet'){loadWallet();loadTxns('wallet-txns',50);}
+  // Hide nav for auth/onboarding screens
+  const navEl=document.getElementById('nav');
+  if(navEl) navEl.style.display=AUTH_SCREENS.includes(id)?'none':'flex';
+  if(id==='screen-wallet'){loadWallet();txnPage=1;applyTxnFilters();}
   if(id==='screen-notif')loadNotifs();
   if(id==='screen-profile')loadProfile();
   if(id==='screen-corridors')loadCorridors();
@@ -1594,20 +1946,225 @@ function fmtNum(n){return Number(n).toLocaleString('en-US',{minimumFractionDigit
 function fmtDate(d){return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}
 
 // ─── Auth ───
+let RT=null; // refresh token
+
 async function doLogin(){
   const btn=document.getElementById('btn-login');
   btn.disabled=true;btn.innerHTML='<div class="spinner" style="width:20px;height:20px;border-width:2px;margin:0;"></div>';
   try{
     const d=await api('POST','/auth/login',{email:document.getElementById('inp-email').value,password:document.getElementById('inp-pass').value});
-    T=d.accessToken;U=d.user;
-    document.getElementById('nav').style.display='flex';
+    T=d.accessToken;RT=d.refreshToken;U=d.user;
     await loadAll();
     nav('screen-home');
     toast('Welcome back!');
   }catch(e){toast(e.message,'e');}
   btn.disabled=false;btn.textContent='Sign In';
 }
-function doLogout(){T=null;U=null;document.getElementById('nav').style.display='none';nav('screen-login');document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-login').classList.add('active');toast('Signed out');}
+function doLogout(){T=null;U=null;RT=null;nav('screen-welcome');toast('Signed out');}
+
+// ─── Welcome Carousel ───
+let welcomeSlide=0;
+(function(){
+  let startX=0;
+  const carousel=document.querySelector('.welcome-carousel');
+  if(!carousel)return;
+  carousel.addEventListener('touchstart',e=>{startX=e.touches[0].clientX;});
+  carousel.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-startX;
+    if(Math.abs(dx)>50){
+      if(dx<0&&welcomeSlide<2){welcomeSlide++;renderWelcomeSlide();}
+      if(dx>0&&welcomeSlide>0){welcomeSlide--;renderWelcomeSlide();}
+    }
+  });
+  setInterval(()=>{if(document.getElementById('screen-welcome').classList.contains('active')){welcomeSlide=(welcomeSlide+1)%3;renderWelcomeSlide();}},4000);
+})();
+function renderWelcomeSlide(){
+  document.querySelectorAll('.welcome-slide').forEach((s,i)=>{
+    s.className='welcome-slide'+(i===welcomeSlide?' active':'');
+  });
+  document.querySelectorAll('#welcome-dots .welcome-dot').forEach((d,i)=>{
+    d.className='welcome-dot'+(i===welcomeSlide?' active':'');
+  });
+}
+
+// ─── Signup ───
+function checkPwStrength(pw){
+  const bar=document.getElementById('pw-bar');
+  const hint=document.getElementById('pw-hint');
+  let score=0;
+  if(pw.length>=8)score++;
+  if(/[A-Z]/.test(pw))score++;
+  if(/[0-9]/.test(pw))score++;
+  if(/[^A-Za-z0-9]/.test(pw))score++;
+  const colors=['#E74C3C','#F2A623','#F2A623','#27AE60'];
+  const labels=['Weak','Fair','Good','Strong'];
+  bar.style.width=(score*25)+'%';
+  bar.style.background=colors[score-1]||'#E74C3C';
+  hint.textContent=pw.length>0?(labels[score-1]||'Too short'):'';
+  hint.style.color=colors[score-1]||'var(--t3)';
+}
+
+async function doSignup(){
+  const btn=document.getElementById('btn-signup');
+  const email=document.getElementById('inp-signup-email').value.trim();
+  const phone=document.getElementById('inp-signup-phone').value.trim();
+  const password=document.getElementById('inp-signup-pass').value;
+  const referralCode=document.getElementById('inp-signup-ref').value.trim();
+  if(!email){toast('Enter your email','e');return;}
+  if(password.length<8){toast('Password must be at least 8 characters','e');return;}
+  btn.disabled=true;btn.innerHTML='<div class="spinner" style="width:20px;height:20px;border-width:2px;margin:0;"></div>';
+  try{
+    const body={email,password};
+    if(phone)body.phone=phone;
+    if(referralCode)body.referralCode=referralCode;
+    const d=await api('POST','/auth/signup',body);
+    T=d.accessToken;RT=d.refreshToken;U=d.user;
+    document.getElementById('otp-email-display').textContent=maskEmail(email);
+    startOtpTimer();
+    nav('screen-otp');
+  }catch(e){toast(e.message,'e');}
+  btn.disabled=false;btn.textContent='Create Account';
+}
+
+function maskEmail(e){
+  const [local,domain]=e.split('@');
+  return local.slice(0,2)+'***@'+domain;
+}
+
+// ─── OTP Verification ───
+let otpTimerInterval=null;
+function startOtpTimer(){
+  let sec=45;
+  const timerEl=document.getElementById('otp-timer');
+  const resendBtn=document.getElementById('otp-resend-btn');
+  timerEl.style.display='inline';
+  resendBtn.style.display='none';
+  clearInterval(otpTimerInterval);
+  otpTimerInterval=setInterval(()=>{
+    sec--;
+    timerEl.textContent='Resend code in '+sec+'s';
+    if(sec<=0){
+      clearInterval(otpTimerInterval);
+      timerEl.style.display='none';
+      resendBtn.style.display='inline';
+      resendBtn.disabled=false;
+    }
+  },1000);
+}
+
+// OTP input auto-advance
+document.querySelectorAll('#otp-inputs input').forEach((inp,i,all)=>{
+  inp.addEventListener('input',e=>{
+    const v=e.target.value.replace(/\D/g,'');
+    e.target.value=v.slice(0,1);
+    if(v&&i<5)all[i+1].focus();
+    e.target.classList.toggle('filled',!!v);
+    const code=Array.from(all).map(x=>x.value).join('');
+    if(code.length===6)doVerifyOtp();
+  });
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Backspace'&&!e.target.value&&i>0){all[i-1].focus();all[i-1].value='';all[i-1].classList.remove('filled');}
+  });
+  inp.addEventListener('paste',e=>{
+    e.preventDefault();
+    const text=(e.clipboardData.getData('text')||'').replace(/\D/g,'').slice(0,6);
+    text.split('').forEach((ch,j)=>{if(all[j]){all[j].value=ch;all[j].classList.add('filled');}});
+    if(text.length===6)doVerifyOtp();
+  });
+});
+
+async function doVerifyOtp(){
+  const code=Array.from(document.querySelectorAll('#otp-inputs input')).map(x=>x.value).join('');
+  if(code.length!==6)return;
+  const btn=document.getElementById('btn-verify-otp');
+  btn.disabled=true;btn.innerHTML='<div class="spinner" style="width:20px;height:20px;border-width:2px;margin:0;"></div>';
+  try{
+    await api('POST','/auth/verify-otp',{code});
+    toast('Email verified!');
+    nav('screen-setup-profile');
+  }catch(e){
+    toast(e.message||'Invalid code','e');
+    document.querySelectorAll('#otp-inputs input').forEach(x=>{x.value='';x.classList.remove('filled');});
+    document.querySelector('#otp-inputs input').focus();
+  }
+  btn.disabled=false;btn.textContent='Verify';
+}
+
+async function doResendOtp(){
+  const btn=document.getElementById('otp-resend-btn');
+  btn.disabled=true;btn.textContent='Sending...';
+  try{
+    await api('POST','/auth/resend-otp');
+    toast('New code sent! Check server console.');
+    startOtpTimer();
+  }catch(e){toast(e.message,'e');btn.disabled=false;btn.textContent='Resend Code';}
+}
+
+function skipOtp(){nav('screen-setup-profile');}
+
+// ─── Profile Setup ───
+async function doSetupProfile(){
+  const fname=document.getElementById('inp-setup-fname').value.trim();
+  const lname=document.getElementById('inp-setup-lname').value.trim();
+  const country=document.getElementById('inp-setup-country').value;
+  if(!fname||!lname){toast('Enter your name','e');return;}
+  const btn=document.getElementById('btn-setup-profile');
+  btn.disabled=true;btn.innerHTML='<div class="spinner" style="width:20px;height:20px;border-width:2px;margin:0;"></div>';
+  try{
+    await api('PUT','/users/me',{firstName:fname,lastName:lname,country});
+    nav('screen-walkthrough');
+  }catch(e){toast(e.message,'e');}
+  btn.disabled=false;btn.textContent='Continue';
+}
+
+function skipSetup(){nav('screen-walkthrough');}
+
+document.getElementById('inp-setup-fname')?.addEventListener('input',updateSetupAvatar);
+document.getElementById('inp-setup-lname')?.addEventListener('input',updateSetupAvatar);
+function updateSetupAvatar(){
+  const f=document.getElementById('inp-setup-fname').value.trim();
+  const l=document.getElementById('inp-setup-lname').value.trim();
+  document.getElementById('setup-avatar-display').textContent=((f[0]||'')+(l[0]||'')).toUpperCase()||'?';
+}
+
+// ─── Walkthrough ───
+let wtSlide=0;
+function wtNext(){
+  if(wtSlide<2){
+    wtSlide++;
+    renderWtSlide();
+    if(wtSlide===2)document.getElementById('wt-next-btn').textContent='Get Started';
+  }else{
+    wtFinish();
+  }
+}
+function renderWtSlide(){
+  document.querySelectorAll('.wt-slide').forEach((s,i)=>{
+    s.className='wt-slide'+(i===wtSlide?' active':'');
+  });
+  document.querySelectorAll('#wt-dots .welcome-dot').forEach((d,i)=>{
+    d.className='welcome-dot'+(i===wtSlide?' active':'');
+  });
+}
+async function wtFinish(){
+  await loadAll();
+  nav('screen-home');
+  toast('Welcome to GuildPay!');
+}
+
+// ─── Forgot Password ───
+async function doForgotPassword(){
+  const email=document.getElementById('inp-forgot-email').value.trim();
+  if(!email){toast('Enter your email','e');return;}
+  const btn=document.getElementById('btn-forgot');
+  btn.disabled=true;btn.innerHTML='<div class="spinner" style="width:20px;height:20px;border-width:2px;margin:0;"></div>';
+  try{
+    await api('POST','/auth/forgot-password',{email});
+    document.getElementById('forgot-success').style.display='block';
+    btn.style.display='none';
+  }catch(e){toast(e.message,'e');}
+  btn.disabled=false;btn.textContent='Send Reset Code';
+}
 
 // ─── Load All ───
 async function loadAll(){await Promise.all([loadWallet(),loadTxns('home-txns',5),loadRecipients(),loadProfile(),loadCards()]);}
@@ -1628,23 +2185,82 @@ function render(id,list){
   el.innerHTML=list.map(b=>`<div class="cur-row" onclick="openCurrencyDetail('${b.currency}')"><div class="cur-left"><div class="cur-flag">${E[b.currency]||'&#128176;'}</div><div><div class="cur-name">${b.currency}</div><div class="cur-code">${fmtNum(b.available)} available</div></div></div><div class="cur-right"><div class="cur-bal">${S[b.currency]||''}${fmtNum(b.balance)}</div><div class="cur-usd">~$${fmtNum(b.usdValue)}</div></div></div>`).join('');
 }
 
-// ─── Transactions ───
+// ─── Transactions (Enhanced with filters) ───
+let txnFilter='', txnPage=1, txnTotal=0, txnLimit=20;
+
+function renderTxnList(transactions, el){
+  if(!transactions?.length){el.innerHTML='<div class="empty"><div class="empty-icon">&#128368;</div><div class="empty-title">No transactions yet</div><div class="empty-sub">Your transactions will appear here</div></div>';return;}
+  el.innerHTML=transactions.map(t=>{
+    const pos=['TOPUP','RECEIVE','REFERRAL_REWARD'].includes(t.type);
+    const icons={SEND:'&#8593;',TOPUP:'&#8595;',WITHDRAW:'&#8599;',EXCHANGE:'&#8644;',BILL_PAYMENT:'&#128241;',CARD_FUND:'&#128179;',RECEIVE:'&#8595;'};
+    const bg=pos?'var(--s-bg)':'#f5f5f5';
+    const sc={COMPLETED:'badge-s',PROCESSING:'badge-w',IN_TRANSIT:'badge-i',FAILED:'badge-e',INITIATED:'badge-w'};
+    return `<div class="tx-row" onclick="showTxDetail('${t.id}')"><div class="tx-ic" style="background:${bg}">${icons[t.type]||'&#128176;'}</div><div class="tx-info"><div class="tx-title">${t.type.replace(/_/g,' ')}</div><div class="tx-sub">${fmtDate(t.createdAt)}${t.provider?' &middot; '+t.provider:''}</div></div><div class="tx-right"><div class="tx-amt ${pos?'pos':''}">${pos?'+':'-'}${S[t.currency]||''}${fmtNum(t.amount)}</div><div class="tx-status"><span class="badge ${sc[t.status]||'badge-i'}">${t.status}</span></div></div></div>`;
+  }).join('');
+}
+
 async function loadTxns(id,limit){
   try{
     const d=await api('GET','/wallets/statement?limit='+limit);
-    const el=document.getElementById(id);
-    if(!d.transactions?.length){el.innerHTML='<div class="empty"><div class="empty-icon">&#128368;</div><div class="empty-title">No transactions yet</div><div class="empty-sub">Your transactions will appear here</div></div>';return;}
-    el.innerHTML=d.transactions.map(t=>{
-      const pos=['TOPUP','RECEIVE','REFERRAL_REWARD'].includes(t.type);
-      const icons={SEND:'&#8593;',TOPUP:'&#8595;',WITHDRAW:'&#8599;',EXCHANGE:'&#8644;',BILL_PAYMENT:'&#128241;',CARD_FUND:'&#128179;',RECEIVE:'&#8595;'};
-      const bg=pos?'var(--s-bg)':'#f5f5f5';
-      const sc={COMPLETED:'badge-s',PROCESSING:'badge-w',IN_TRANSIT:'badge-i',FAILED:'badge-e',INITIATED:'badge-w'};
-      return `<div class="tx-row" onclick="showTxDetail('${t.id}')"><div class="tx-ic" style="background:${bg}">${icons[t.type]||'&#128176;'}</div><div class="tx-info"><div class="tx-title">${t.type.replace(/_/g,' ')}</div><div class="tx-sub">${fmtDate(t.createdAt)}${t.provider?' &middot; '+t.provider:''}</div></div><div class="tx-right"><div class="tx-amt ${pos?'pos':''}">${pos?'+':'-'}${S[t.currency]||''}${fmtNum(t.amount)}</div><div class="tx-status"><span class="badge ${sc[t.status]||'badge-i'}">${t.status}</span></div></div></div>`;
-    }).join('');
+    renderTxnList(d.transactions, document.getElementById(id));
   }catch(e){console.error(e);}
 }
 
-// ─── Transaction Detail ───
+function setTxnFilter(tab){
+  document.querySelectorAll('#txn-filter-tabs .filter-tab').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active');
+  txnFilter=tab.dataset.filter||'';
+  txnPage=1;
+  applyTxnFilters();
+}
+
+function toggleDateRange(){
+  const area=document.getElementById('date-range-area');
+  area.style.display=area.style.display==='none'?'flex':'none';
+}
+
+async function applyTxnFilters(){
+  const el=document.getElementById('wallet-txns');
+  el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  try{
+    let qs=`limit=${txnLimit}&page=${txnPage}`;
+    if(txnFilter) qs+=`&type=${txnFilter}`;
+    const from=document.getElementById('txn-date-from')?.value;
+    const to=document.getElementById('txn-date-to')?.value;
+    if(from) qs+=`&from=${from}T00:00:00.000Z`;
+    if(to) qs+=`&to=${to}T23:59:59.999Z`;
+    const d=await api('GET','/wallets/statement?'+qs);
+    txnTotal=d.pagination?.total||0;
+    const countEl=document.getElementById('txn-count');
+    if(countEl) countEl.textContent=txnTotal>0?`${txnTotal} transaction${txnTotal===1?'':'s'}`:'';
+    renderTxnList(d.transactions, el);
+    const moreBtn=document.getElementById('txn-load-more');
+    if(moreBtn) moreBtn.style.display=(d.pagination && txnPage<d.pagination.totalPages)?'block':'none';
+  }catch(e){el.innerHTML=`<div class="empty"><div class="empty-icon">&#128533;</div><div class="empty-title">${e.message}</div></div>`;}
+}
+
+async function loadMoreTxns(){
+  txnPage++;
+  const el=document.getElementById('wallet-txns');
+  try{
+    let qs=`limit=${txnLimit}&page=${txnPage}`;
+    if(txnFilter) qs+=`&type=${txnFilter}`;
+    const from=document.getElementById('txn-date-from')?.value;
+    const to=document.getElementById('txn-date-to')?.value;
+    if(from) qs+=`&from=${from}T00:00:00.000Z`;
+    if(to) qs+=`&to=${to}T23:59:59.999Z`;
+    const d=await api('GET','/wallets/statement?'+qs);
+    if(d.transactions?.length){
+      const tmp=document.createElement('div');
+      renderTxnList(d.transactions,tmp);
+      el.innerHTML+=tmp.innerHTML;
+    }
+    const moreBtn=document.getElementById('txn-load-more');
+    if(moreBtn) moreBtn.style.display=(d.pagination && txnPage<d.pagination.totalPages)?'block':'none';
+  }catch(e){console.error(e);}
+}
+
+// ─── Transaction Detail (Enhanced) ───
 async function showTxDetail(id){
   openSheet('sh-txdetail');
   const el=document.getElementById('txd-content');
@@ -1657,11 +2273,17 @@ async function showTxDetail(id){
     html+=`<div class="card"><div class="card-title">Details</div>`;
     html+=`<div class="txd-row"><span class="txd-label">Type</span><span class="txd-val">${d.type.replace(/_/g,' ')}</span></div>`;
     html+=`<div class="txd-row"><span class="txd-label">Amount</span><span class="txd-val">${S[d.currency]||''}${fmtNum(d.amount)} ${d.currency}</span></div>`;
-    if(d.fee)html+=`<div class="txd-row"><span class="txd-label">Fee</span><span class="txd-val">${S[d.currency]||''}${fmtNum(d.fee)}</span></div>`;
+    if(d.fee>0){
+      html+=`<div class="txd-row"><span class="txd-label">Fee</span><span class="txd-val">${S[d.currency]||''}${fmtNum(d.fee)}</span></div>`;
+      const total=Number(d.amount)+Number(d.fee);
+      html+=`<div class="txd-row" style="font-weight:600;"><span class="txd-label">Total charged</span><span class="txd-val">${S[d.currency]||''}${fmtNum(total)} ${d.currency}</span></div>`;
+    }
     if(d.toAmount)html+=`<div class="txd-row"><span class="txd-label">Recipient gets</span><span class="txd-val">${S[d.toCurrency]||''}${fmtNum(d.toAmount)} ${d.toCurrency}</span></div>`;
-    if(d.exchangeRate)html+=`<div class="txd-row"><span class="txd-label">Exchange rate</span><span class="txd-val">${d.exchangeRate}</span></div>`;
+    if(d.exchangeRate)html+=`<div class="txd-row"><span class="txd-label">Exchange rate</span><span class="txd-val">1 ${d.currency} = ${d.exchangeRate} ${d.toCurrency||''}</span></div>`;
     if(d.provider)html+=`<div class="txd-row"><span class="txd-label">Provider</span><span class="txd-val badge badge-p">${d.provider}</span></div>`;
-    html+=`<div class="txd-row"><span class="txd-label">Transaction ID</span><span class="txd-val" style="font-family:monospace;font-size:11px;">${d.transactionId}</span></div>`;
+    html+=`<div class="txd-row"><span class="txd-label">Date</span><span class="txd-val">${fmtDate(d.createdAt)}</span></div>`;
+    if(d.completedAt)html+=`<div class="txd-row"><span class="txd-label">Completed</span><span class="txd-val">${fmtDate(d.completedAt)}</span></div>`;
+    html+=`<div class="txd-row"><span class="txd-label">Transaction ID</span><span class="txd-val" style="font-family:monospace;font-size:11px;cursor:pointer;" onclick="navigator.clipboard.writeText('${d.transactionId}');toast('ID copied!')">${d.transactionId} &#128203;</span></div>`;
     html+=`</div>`;
     if(d.tracking?.length){
       html+=`<div class="card"><div class="card-title">Tracking</div><div class="timeline">`;
@@ -1671,8 +2293,36 @@ async function showTxDetail(id){
       });
       html+=`</div></div>`;
     }
+    // Share receipt button
+    html+=`<button class="btn btn-block" style="margin-top:12px;background:var(--t3);color:#fff;" onclick="shareReceipt('${d.transactionId}','${(pos?'+':'-')+fmtNum(d.amount)+' '+(d.currency||'')}','${d.type}','${d.status}')">&#128228; Share Receipt</button>`;
     el.innerHTML=html;
   }catch(e){el.innerHTML=`<div class="empty"><div class="empty-icon">&#128533;</div><div class="empty-title">${e.message}</div></div>`;}
+}
+
+function shareReceipt(txId,amount,type,status){
+  const text=`GuildPay Receipt\n${type.replace(/_/g,' ')} ${amount}\nStatus: ${status}\nID: ${txId}`;
+  if(navigator.share){navigator.share({title:'GuildPay Receipt',text});}
+  else{navigator.clipboard.writeText(text);toast('Receipt copied!');}
+}
+
+// ─── FAQ / Help ───
+function toggleFaq(el){
+  const isOpen=el.classList.contains('open');
+  // Close all in same category
+  el.closest('.faq-category')?.querySelectorAll('.faq-item.open').forEach(i=>i.classList.remove('open'));
+  if(!isOpen) el.classList.add('open');
+}
+
+function filterFaq(q){
+  const query=q.toLowerCase().trim();
+  document.querySelectorAll('.faq-item').forEach(item=>{
+    const text=(item.querySelector('.faq-q')?.textContent||'').toLowerCase()+(item.querySelector('.faq-a')?.textContent||'').toLowerCase();
+    item.style.display=(!query||text.includes(query))?'':'none';
+  });
+  document.querySelectorAll('.faq-category').forEach(cat=>{
+    const visible=cat.querySelectorAll('.faq-item[style=""], .faq-item:not([style])').length;
+    cat.style.display=visible>0||!query?'':'none';
+  });
 }
 
 // ─── Recipients ───
@@ -2117,6 +2767,11 @@ async function loadProfile(){
       <div class="menu-item" onclick="nav('screen-notif')">
         <div class="menu-icon">&#128276;</div>
         <div class="menu-label">Notifications</div>
+        <span class="menu-arrow">&#8250;</span>
+      </div>
+      <div class="menu-item" onclick="nav('screen-help')">
+        <div class="menu-icon">&#10067;</div>
+        <div class="menu-label">Help & Support</div>
         <span class="menu-arrow">&#8250;</span>
       </div>
       <div class="card mt-16" style="padding:12px 16px;">
@@ -3472,9 +4127,26 @@ async function submitKyc(){
         expiryDate:document.getElementById('kyc-doc-expiry').value||'2030-12-31',
       },
     };
-    await api('POST','/users/me/kyc',body);
+    const res=await api('POST','/users/me/kyc',body);
     // Simulate processing delay
     await new Promise(r=>setTimeout(r,1500));
+    // Show Nium connection details
+    const isSandbox=res.niumCustomerId?.startsWith('sandbox_');
+    const providerTag=isSandbox
+      ?'<span style="display:inline-block;padding:2px 8px;border-radius:6px;background:#FFF3E0;color:#E65100;font-size:11px;font-weight:700;">MOCK</span>'
+      :'<span style="display:inline-block;padding:2px 8px;border-radius:6px;background:#E8F5E9;color:#2E7D32;font-size:11px;font-weight:700;">NIUM SANDBOX</span>';
+    document.getElementById('kyc-success-sub').innerHTML=isSandbox
+      ?'Using local sandbox fallback (Nium not connected)'
+      :'Connected to Nium sandbox — KYC submitted for review';
+    document.getElementById('kyc-success-details').innerHTML=`
+      <div style="font-size:12px;color:var(--t2);margin-bottom:8px;">Provider ${providerTag}</div>
+      <div style="font-size:12px;color:var(--t2);margin-bottom:4px;">Customer ID</div>
+      <div style="font-size:13px;font-weight:600;font-family:monospace;word-break:break-all;margin-bottom:10px;">${res.niumCustomerId||'—'}</div>
+      <div style="font-size:12px;color:var(--t2);margin-bottom:4px;">Wallet ID</div>
+      <div style="font-size:13px;font-weight:600;font-family:monospace;word-break:break-all;margin-bottom:12px;">${res.niumWalletId||'—'}</div>
+      <div style="border-top:1px solid #eee;padding-top:10px;font-size:13px;color:var(--t2);">Your limits have been increased:</div>
+      <div style="font-size:14px;font-weight:600;margin-top:4px;">Daily: $5,000 &nbsp;|&nbsp; Monthly: $25,000</div>
+    `;
     kycStep=5;renderKycStep();
   }catch(e){
     document.getElementById('kyc-error-title').textContent='Verification Failed';

@@ -453,6 +453,34 @@ export async function createSubAccount(params: {
   return flwRequest("POST", "/subaccounts", params);
 }
 
+// ─── Refunds ───
+
+/**
+ * Refund a completed transaction (full or partial).
+ * Maps to: POST /v3/transactions/{id}/refund
+ */
+export async function refundTransaction(
+  transactionId: number,
+  amount?: number
+): Promise<{
+  status: string;
+  data: {
+    id: number;
+    account_id: number;
+    tx_id: number;
+    flw_ref: string;
+    wallet_id: number;
+    amount_refunded: number;
+    status: string;
+    created_at: string;
+  };
+  message: string;
+}> {
+  const body: Record<string, any> = {};
+  if (amount) body.amount = amount;
+  return flwRequest("POST", `/transactions/${transactionId}/refund`, body);
+}
+
 // ─── Webhook Verification ───
 
 /**

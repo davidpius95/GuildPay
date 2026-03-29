@@ -5,6 +5,7 @@ import { prisma } from "../config/db";
 import { AuthRequest } from "../middleware/auth";
 import { AppError } from "../middleware/error";
 import * as nium from "../services/nium";
+import { isDemoMode } from "../config/providers";
 
 export const userRouter = Router();
 
@@ -133,7 +134,10 @@ userRouter.post("/me/kyc", async (req: AuthRequest, res: Response, next: NextFun
         } : undefined,
       });
     } catch (providerErr) {
-      console.log(`[KYC] Nium onboarding failed, using sandbox fallback:`, (providerErr as Error).message);
+      if (!isDemoMode()) {
+        throw new AppError("KYC provider unavailable. Please try again later.", 502, "KYC_PROVIDER_ERROR");
+      }
+      console.log(`[KYC] Nium onboarding failed, using demo fallback:`, (providerErr as Error).message);
       customer = { customerHashId: `sandbox_cust_${Date.now()}`, walletHashId: `sandbox_wallet_${Date.now()}` };
     }
 
@@ -190,9 +194,31 @@ userRouter.post("/me/kyc", async (req: AuthRequest, res: Response, next: NextFun
 userRouter.get("/me/kyc/status", async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const [profile, docs] = await Promise.all([
-      prisma.userProfile.findUnique({ where: { userId: req.user!.id }, select: { kycTier: true } }),
+      prisma.userProfile.findUnique({ where: { userId: req.user!.id } }),
       prisma.kycDocument.findMany({ where: { userId: req.user!.id }, orderBy: { createdAt: "desc" } }),
     ]);
-    res.json({ tier: profile?.kycTier || "TIER_0", documents: docs });
+
+    let niumStatus = null;
+
+    // Poll Nium for live KYC status if customer was onboarded
+    if ((profile as any)?.niumCustomerHashId && !(profile as any).niumCustomerHashId.startsWith("sandbox_")) {
+      try {
+        const status = await nium.getCustomerStatus((profile as any).niumCustomerHashId);
+        niumStatus = { complianceStatus: status.complianceStatus, kycStatus: status.kycStatus };
+
+        // Auto-upgrade tier based on Nium compliance status
+        if (status.complianceStatus === "COMPLETED" && profile?.kycTier !== "TIER_2") {
+          await prisma.userProfile.update({
+            where: { userId: req.user!.id },
+            data: { kycTier: "TIER_2" },
+          });
+          if (profile) profile.kycTier = "TIER_2";
+        }
+      } catch (e) {
+        console.warn(`[KYC] Nium status poll failed: ${(e as Error).message}`);
+      }
+    }
+
+    res.json({ tier: profile?.kycTier || "TIER_0", documents: docs, niumStatus });
   } catch (err) { next(err); }
 });

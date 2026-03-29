@@ -17,7 +17,7 @@
 │   Routes:                                                │
 │   /auth       – signup, login, OTP, refresh              │
 │   /users      – profile, PIN, KYC (via Nium)            │
-│   /wallets    – balances (11 currencies), statements     │
+│   /wallets    – balances (12 currencies), statements     │
 │   /transfers  – send, topup, withdraw, exchange, FX      │
 │   /cards      – virtual cards (Nium/Flutterwave)         │
 │   /bills      – airtime, data, utilities (Flutterwave)   │
@@ -131,6 +131,52 @@ Crypto:           USDT/USDC ↔ USD (Blockchain)
 Internal:         Same currency → instant, free
 ```
 
+## Provider Integration Status
+
+### DEMO_MODE
+
+All provider API calls have **gated sandbox fallbacks** controlled by the `DEMO_MODE` environment variable:
+
+- `DEMO_MODE=true` — When a provider API fails, the system falls back to sandbox simulation (fake IDs, local-only state changes). Safe for development and demos.
+- `DEMO_MODE=false` (or unset) — Provider failures are surfaced as errors. Required for production.
+
+Sandbox-generated resources use identifiable prefixes: `sandbox_cust_*`, `sandbox_wallet_*`, `sandbox_bill_*`, `sandbox_*` (cards).
+
+### Endpoint Wiring Summary
+
+| Feature | Provider | Service Function | Route | Status |
+|---------|----------|-----------------|-------|--------|
+| KYC Onboarding | Nium | `onboardCustomer()` | `POST /users/me/kyc` | Wired (demo fallback) |
+| KYC Status Polling | Nium | `getCustomerStatus()` | `GET /users/me/kyc/status` | Wired (auto tier upgrade) |
+| Account Verification | Nium/Flw | `verifyAccount()` / `resolveAccount()` | Pre-send validation | Wired (non-blocking in demo) |
+| FX Quotes | Nium/Flw | `getFxQuote()` / `getExchangeRate()` | `GET /transfers/fx/quote` | Wired (3-tier fallback) |
+| FX Conversion | Nium | `executeFxConversion()` | `POST /transfers/exchange` | Wired (quoteId locked) |
+| Payouts | Nium/Flw | `createPayout()` / `createBankTransfer()` | `POST /transfers/send` | Wired (demo fallback) |
+| Payout Tracking | Nium/Flw | `getPayoutStatus()` / `getTransferStatus()` | Webhook-driven | Wired |
+| Card Issuance | Nium/Flw | `issueVirtualCard()` / `createVirtualCard()` | `POST /cards/create` | Wired (demo fallback) |
+| Card Details | Nium | `getCardDetails()` | `GET /cards/:id/details` | Wired (real cards only) |
+| Card Freeze | Nium/Flw | `toggleCardBlock()` / `toggleVirtualCard()` | `PUT /cards/freeze` | Wired (real cards only) |
+| Card Funding | Flw | `fundVirtualCard()` | `POST /cards/fund` | Wired (real cards only) |
+| Bill Payments | Flw | `payBill()` | `POST /bills/pay` | Wired (demo fallback) |
+| Bill Validation | Flw | `validateBillCustomer()` | `POST /bills/validate` | Wired (demo fallback) |
+| Bill Categories | Flw | `getBillCategories()` | `GET /bills/categories` | Wired (demo fallback) |
+| Bank List | Flw | `getBanks()` | `GET /recipients/banks/:country` | Wired (demo fallback) |
+| Account Resolution | Flw | `resolveAccount()` | `POST /transfers/verify-account` | Wired |
+| Payment Collection | Flw | `initiatePayment()` | `POST /transfers/topup` | Wired |
+| Mobile Money Charge | Flw | `chargeMobileMoney()` | `POST /transfers/topup` (mobile) | Wired |
+| Wallet Balances | Nium | `getWalletBalances()` | `GET /wallets` (sync) | Wired (non-sandbox only) |
+| Sub-Accounts | Flw | `createSubAccount()` | `POST /transfers/sub-accounts` | Wired |
+| Bill Recurrence | Flw | `payBill({recurrence})` | `POST /bills/pay` | Wired (ONCE/WEEKLY/MONTHLY) |
+| Transaction Refunds | Flw | `refundTransaction()` | `POST /transfers/refund` | Wired (PIN-verified) |
+
+### Pre-Send Account Verification
+
+Before dispatching a transfer, the system pre-validates the recipient's bank account:
+- **African countries (NG, GH, KE)** → Flutterwave `resolveAccount()`
+- **All others** → Nium `verifyAccount()`
+- In **production mode**, validation failure blocks the transfer
+- In **demo mode**, validation failure is logged but non-blocking
+
 ## Webhook Architecture
 
 Both providers send webhooks on transaction state changes:
@@ -144,9 +190,11 @@ Both providers send webhooks on transaction state changes:
 
 ### Nium Webhooks (`POST /webhooks/nium`)
 1. Verify HMAC-SHA256 signature via `x-nium-signature` header
-2. Handle statuses: `PAID`, `COMPLETED`, `DEEMED_PAID`, `IN_PROGRESS`, `SENT_TO_BANK`, `REJECTED`, `RETURNED`, `CANCELLED`
-3. On completion: finalize wallet deduction, update transaction, notify user
-4. On failure: unlock/refund locked funds, update transaction, notify user
+2. Handle payout statuses: `PAID`, `COMPLETED`, `DEEMED_PAID`, `IN_PROGRESS`, `SENT_TO_BANK`, `REJECTED`, `RETURNED`, `CANCELLED`
+3. Handle KYC events: `CUSTOMER_KYC_STATUS`, `CUSTOMER_COMPLIANCE_STATUS`
+4. On payout completion: finalize wallet deduction, update transaction, notify user
+5. On payout failure: unlock/refund locked funds, update transaction, notify user
+6. On KYC approval: auto-upgrade user to TIER_2, send notification
 
 ## Monorepo Structure
 

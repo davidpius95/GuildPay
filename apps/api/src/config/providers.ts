@@ -2,7 +2,7 @@
 // All values are lazy getters so they read process.env AFTER dotenv loads.
 
 export const niumConfig = {
-  get baseUrl() { return process.env.NIUM_API_BASE_URL || "https://gateway.nium.com"; },
+  get baseUrl() { return (process.env.NIUM_API_BASE_URL || "https://gateway.nium.com/api").replace(/\/+$/, ""); },
   get clientHashId() { return process.env.NIUM_CLIENT_HASH_ID || ""; },
   get apiKey() { return process.env.NIUM_API_KEY || ""; },
   get webhookSecret() { return process.env.NIUM_WEBHOOK_SECRET || ""; },
@@ -15,8 +15,8 @@ export const niumConfig = {
     };
   },
 
-  clientUrl(path: string) {
-    return `${this.baseUrl}/api/v1/client/${this.clientHashId}${path}`;
+  clientUrl(path: string, version: "v1" | "v4" = "v1") {
+    return `${this.baseUrl}/${version}/client/${this.clientHashId}${path}`;
   },
 };
 
@@ -38,3 +38,5 @@ export const flutterwaveConfig = {
     return `${this.baseUrl}${path}`;
   },
 };
+
+export const isDemoMode = () => process.env.DEMO_MODE === "true";
