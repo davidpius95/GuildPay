@@ -1,0 +1,31 @@
+{
+  "name": "guildpay",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "db:generate": "turbo run db:generate --filter=@guildpay/db",
+    "db:migrate": "turbo run db:migrate --filter=@guildpay/db",
+    "db:seed": "turbo run db:seed --filter=@guildpay/db",
+    "docker:up": "docker compose -f infra/docker-compose.yml up -d",
+    "docker:down": "docker compose -f infra/docker-compose.yml down",
+    "test:sandbox": "cd apps/api && npm run test:sandbox",
+    "setup": "npm install && npm run docker:up && sleep 3 && npm run db:generate && npm run db:migrate && npm run db:seed && echo '✓ GuildPay ready!'",
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "prettier": "^3.4.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "npm@10.8.0"
+}

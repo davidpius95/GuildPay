@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package payment;
+
+option go_package = "guildpay/payment-svc/proto";
+
+service PaymentService {
+  rpc ProcessTransfer (TransferRequest) returns (TransferResponse);
+  rpc ProcessTopup (TopupRequest) returns (TopupResponse);
+  rpc ProcessWithdraw (WithdrawRequest) returns (WithdrawResponse);
+  rpc GetExchangeRate (RateRequest) returns (RateResponse);
+}
+
+message TransferRequest {
+  string transaction_id = 1;
+  double amount = 2;
+  string currency = 3;
+  double to_amount = 4;
+  string to_currency = 5;
+  string rail = 6;
+  RecipientDetails recipient = 7;
+}
+
+message RecipientDetails {
+  string name = 1;
+  string country = 2;
+  string bank_code = 3;
+  string account_number = 4;
+  string mobile_number = 5;
+  string wallet_address = 6;
+}
+
+message TransferResponse {
+  string status = 1;
+  string provider = 2;
+  string provider_ref = 3;
+  string estimated_time = 4;
+}
+
+message TopupRequest {
+  string transaction_id = 1;
+  double amount = 2;
+  string currency = 3;
+  string provider = 4;
+  string wallet_id = 5;
+}
+
+message TopupResponse {
+  string payment_link = 1;
+  string provider_ref = 2;
+}
+
+message WithdrawRequest {
+  string transaction_id = 1;
+  double amount = 2;
+  string currency = 3;
+  string to_currency = 4;
+  string rail = 5;
+}
+
+message WithdrawResponse {
+  string status = 1;
+  string provider_ref = 2;
+  string estimated_time = 3;
+}
+
+message RateRequest {
+  string from_currency = 1;
+  string to_currency = 2;
+}
+
+message RateResponse {
+  double rate = 1;
+  string source = 2;
+  string updated_at = 3;
+}
