@@ -446,6 +446,40 @@
     .toggle-switch.on { background:var(--p); }
     .toggle-switch::after { content:''; position:absolute; width:24px; height:24px; border-radius:12px; background:#fff; top:2px; left:2px; transition:transform 0.3s; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
     .toggle-switch.on::after { transform:translateX(24px); }
+
+    /* ── Phase 5: Bill Payments ── */
+    .bill-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px; }
+    .bill-cat { background:#fff; border-radius:16px; padding:20px 12px; text-align:center; cursor:pointer; transition:all 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+    .bill-cat:active { transform:scale(0.95); }
+    .bill-cat-icon { font-size:32px; margin-bottom:8px; }
+    .bill-cat-name { font-size:12px; font-weight:600; color:var(--t1); }
+    .bill-recent { margin-top:24px; }
+    .bill-recent-title { font-size:14px; font-weight:700; color:var(--t1); margin-bottom:12px; }
+    .bill-item { display:flex; align-items:center; gap:12px; padding:14px 16px; background:#fff; border-radius:12px; margin-bottom:8px; }
+    .bill-item-icon { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; }
+    .bill-item-info { flex:1; }
+    .bill-item-type { font-size:14px; font-weight:600; color:var(--t1); }
+    .bill-item-sub { font-size:12px; color:var(--t2); }
+    .bill-item-amt { font-size:14px; font-weight:700; color:var(--t1); text-align:right; }
+    .bill-item-date { font-size:11px; color:var(--t2); text-align:right; }
+
+    .bill-provider-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:12px; }
+    .bill-provider { display:flex; align-items:center; gap:10px; padding:14px; background:#fff; border-radius:12px; border:2px solid #eee; cursor:pointer; transition:all 0.2s; }
+    .bill-provider.selected { border-color:var(--p); background:rgba(109,35,53,0.04); }
+    .bill-provider-logo { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; }
+    .bill-provider-name { font-size:13px; font-weight:600; color:var(--t1); }
+
+    .bill-amt-presets { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    .bill-preset { padding:8px 16px; border-radius:20px; background:#f5f5f5; font-size:13px; font-weight:600; color:var(--t1); cursor:pointer; transition:all 0.2s; border:none; }
+    .bill-preset.on { background:var(--p); color:#fff; }
+
+    .bill-confirm-card { background:#fff; border-radius:16px; padding:20px; margin-top:16px; }
+    .bill-confirm-row { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f0f0f0; }
+    .bill-confirm-row:last-child { border-bottom:none; }
+    .bill-confirm-label { font-size:13px; color:var(--t2); }
+    .bill-confirm-value { font-size:13px; font-weight:600; color:var(--t1); }
+
+    .bill-success-icon { width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg,#4CAF50,#66BB6A); display:flex; align-items:center; justify-content:center; font-size:40px; margin:0 auto 20px; color:#fff; }
   </style>
 </head>
 <body>
@@ -845,6 +879,100 @@
     </div>
   </div>
 
+  <!-- ════════════ BILL PAYMENT FLOW ════════════ -->
+  <div class="flow-overlay" id="bill-flow">
+    <div class="flow-header">
+      <button class="flow-back" id="bill-back" onclick="billBack()">&#8592;</button>
+      <div class="flow-title" id="bill-flow-title">Pay Bill</div>
+      <button class="flow-close" onclick="closeBillFlow(false)">&#10005;</button>
+    </div>
+    <div class="flow-progress"><div class="flow-progress-bar" id="bill-progress" style="width:25%"></div></div>
+    <div class="flow-body">
+
+      <!-- Step 1: Provider Selection -->
+      <div class="flow-screen active" id="bill-s1">
+        <h2 id="bill-step1-title">Select Provider</h2>
+        <div id="bill-providers" class="bill-provider-grid"></div>
+      </div>
+
+      <!-- Step 2: Customer + Amount -->
+      <div class="flow-screen" id="bill-s2">
+        <h2 id="bill-step2-title">Enter Details</h2>
+        <div class="field mt-8">
+          <label id="bill-customer-label">Phone Number</label>
+          <input type="text" id="bill-customer" placeholder="Enter phone number">
+        </div>
+        <div id="bill-validate-result" style="display:none;padding:10px 14px;border-radius:10px;background:#e8f5e9;color:#2e7d32;font-size:13px;margin-top:8px;"></div>
+        <div class="field mt-16">
+          <label>Amount</label>
+          <input type="number" id="bill-amount" placeholder="0.00" oninput="onBillAmountChange()">
+        </div>
+        <div class="bill-amt-presets" id="bill-presets"></div>
+        <div style="margin-top:12px;padding:10px 14px;background:#f8f8f8;border-radius:10px;">
+          <div style="font-size:12px;color:var(--t2);">Wallet Balance</div>
+          <div style="font-size:16px;font-weight:700;color:var(--t1);" id="bill-wallet-bal">--</div>
+        </div>
+      </div>
+
+      <!-- Step 3: Confirm -->
+      <div class="flow-screen" id="bill-s3">
+        <h2>Confirm Payment</h2>
+        <div class="bill-confirm-card" id="bill-confirm-card"></div>
+      </div>
+
+      <!-- Step 4: PIN -->
+      <div class="flow-screen" id="bill-s4">
+        <div class="pin-screen">
+          <div class="pin-title">Enter PIN</div>
+          <div class="pin-sub">Confirm this bill payment</div>
+          <div class="pin-dots" id="bill-pin-dots"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
+          <div class="pin-pad">
+            <button class="pin-key" onclick="billPinKey('1')">1</button>
+            <button class="pin-key" onclick="billPinKey('2')">2</button>
+            <button class="pin-key" onclick="billPinKey('3')">3</button>
+            <button class="pin-key" onclick="billPinKey('4')">4</button>
+            <button class="pin-key" onclick="billPinKey('5')">5</button>
+            <button class="pin-key" onclick="billPinKey('6')">6</button>
+            <button class="pin-key" onclick="billPinKey('7')">7</button>
+            <button class="pin-key" onclick="billPinKey('8')">8</button>
+            <button class="pin-key" onclick="billPinKey('9')">9</button>
+            <button class="pin-key empty"></button>
+            <button class="pin-key" onclick="billPinKey('0')">0</button>
+            <button class="pin-key delete" onclick="billPinDelete()">&#9003;</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5: Success -->
+      <div class="flow-screen" id="bill-s5">
+        <div class="success-screen">
+          <div class="bill-success-icon">&#10003;</div>
+          <div class="success-title">Payment Successful!</div>
+          <div class="success-sub" id="bill-success-sub">Your bill has been paid</div>
+          <div class="success-detail" id="bill-success-detail"></div>
+          <button class="btn btn-p mt-24" onclick="closeBillFlow(true)" style="max-width:300px;">Done</button>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div class="flow-screen" id="bill-s-error">
+        <div class="error-state">
+          <div class="error-icon">&#9888;</div>
+          <div class="error-title" id="bill-error-title">Payment Failed</div>
+          <div class="error-sub" id="bill-error-sub">Please try again.</div>
+          <div class="error-actions">
+            <button class="btn btn-s btn-sm" onclick="closeBillFlow(false)">Cancel</button>
+            <button class="btn btn-p btn-sm" onclick="billRetry()">Try Again</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="flow-footer" id="bill-footer">
+      <button class="btn btn-p" id="bill-next-btn" onclick="billNext()">Continue</button>
+    </div>
+  </div>
+
   <!-- ════════════ PROFILE ════════════ -->
   <div class="screen screen-pad-top" id="screen-profile">
     <div class="hdr"><h1>Profile</h1></div>
@@ -853,10 +981,49 @@
     <button class="btn btn-danger mt-24" onclick="doLogout()">Sign Out</button>
   </div>
 
+  <!-- ════════════ BILLS ════════════ -->
+  <div class="screen screen-pad-top" id="screen-bills">
+    <div class="hdr"><h1>Bills</h1></div>
+    <p style="font-size:14px;color:var(--t2);margin-bottom:4px;">Pay bills & buy airtime</p>
+
+    <div class="bill-grid">
+      <div class="bill-cat" onclick="openBillFlow('AIRTIME')">
+        <div class="bill-cat-icon">&#128241;</div>
+        <div class="bill-cat-name">Airtime</div>
+      </div>
+      <div class="bill-cat" onclick="openBillFlow('DATA')">
+        <div class="bill-cat-icon">&#128246;</div>
+        <div class="bill-cat-name">Data</div>
+      </div>
+      <div class="bill-cat" onclick="openBillFlow('ELECTRICITY')">
+        <div class="bill-cat-icon">&#9889;</div>
+        <div class="bill-cat-name">Electricity</div>
+      </div>
+      <div class="bill-cat" onclick="openBillFlow('TV_CABLE')">
+        <div class="bill-cat-icon">&#128250;</div>
+        <div class="bill-cat-name">TV / Cable</div>
+      </div>
+      <div class="bill-cat" onclick="openBillFlow('INTERNET')">
+        <div class="bill-cat-icon">&#127760;</div>
+        <div class="bill-cat-name">Internet</div>
+      </div>
+      <div class="bill-cat" onclick="openBillFlow('EDUCATION')">
+        <div class="bill-cat-icon">&#127891;</div>
+        <div class="bill-cat-name">Education</div>
+      </div>
+    </div>
+
+    <div class="bill-recent">
+      <div class="bill-recent-title">Recent Payments</div>
+      <div id="bill-history"><div class="empty-state"><div class="empty-icon">&#128221;</div><p>No bill payments yet</p></div></div>
+    </div>
+  </div>
+
   <!-- ════════════ BOTTOM NAV ════════════ -->
   <div class="nav" id="nav">
     <div class="nav-i on" data-s="screen-home" onclick="nav('screen-home')"><span class="ni">&#127968;</span>Home</div>
     <div class="nav-i" data-s="screen-wallet" onclick="nav('screen-wallet')"><span class="ni">&#128179;</span>Wallet</div>
+    <div class="nav-i" data-s="screen-bills" onclick="nav('screen-bills')"><span class="ni">&#128221;</span>Bills</div>
     <div class="nav-i" data-s="screen-cards" onclick="nav('screen-cards')"><span class="ni">&#128179;</span>Cards</div>
     <div class="nav-i" data-s="screen-profile" onclick="nav('screen-profile')"><span class="ni">&#128100;</span>Profile</div>
   </div>
@@ -1237,6 +1404,7 @@ function nav(id){
   if(id==='screen-recipients')renderFullRecipList();
   if(id==='screen-receive')generateQR();
   if(id==='screen-cards')loadCards();
+  if(id==='screen-bills')loadBillHistory();
 }
 function openSheet(id){document.getElementById(id).classList.add('on');}
 function closeSheet(id){document.getElementById(id).classList.remove('on');}
@@ -2775,6 +2943,242 @@ function showCardTxns(id){
         <div class="tx-info"><div class="tx-title">${t.merchant||t.type}</div><div class="tx-sub">${fmtDate(t.createdAt)}</div></div>
         <div class="tx-right"><div class="tx-amt">-${(S[t.currency]||'')}${fmtNum(t.amount)}</div></div>
       </div>`).join('');
+}
+
+// ─── Phase 5: Bill Payments ───
+const BILL_TYPES={
+  AIRTIME:{icon:'&#128241;',label:'Airtime',customerLabel:'Phone Number',placeholder:'e.g. 08012345678',presets:[100,200,500,1000,2000,5000],currency:'NGN'},
+  DATA:{icon:'&#128246;',label:'Data Bundle',customerLabel:'Phone Number',placeholder:'e.g. 08012345678',presets:[500,1000,1500,2000,3000,5000],currency:'NGN'},
+  ELECTRICITY:{icon:'&#9889;',label:'Electricity',customerLabel:'Meter Number',placeholder:'e.g. 45050000001',presets:[1000,2000,5000,10000,20000],currency:'NGN',validate:true},
+  TV_CABLE:{icon:'&#128250;',label:'TV / Cable',customerLabel:'Smartcard Number',placeholder:'e.g. 7025642491',presets:[3000,5000,7500,10000,15000,21000],currency:'NGN',validate:true},
+  INTERNET:{icon:'&#127760;',label:'Internet',customerLabel:'Account ID',placeholder:'e.g. ACC001234',presets:[2000,5000,10000,15000],currency:'NGN'},
+  EDUCATION:{icon:'&#127891;',label:'Education',customerLabel:'Student ID',placeholder:'e.g. STU-2024-001',presets:[5000,10000,25000,50000],currency:'NGN'},
+};
+const BILL_PROVIDERS={
+  AIRTIME:[
+    {id:'MTN',name:'MTN',color:'#FFCB05',textColor:'#003C71'},
+    {id:'AIRTEL',name:'Airtel',color:'#ED1C24',textColor:'#fff'},
+    {id:'GLO',name:'Glo',color:'#50B848',textColor:'#fff'},
+    {id:'9MOBILE',name:'9mobile',color:'#006839',textColor:'#fff'},
+  ],
+  DATA:[
+    {id:'MTN_DATA',name:'MTN Data',color:'#FFCB05',textColor:'#003C71'},
+    {id:'AIRTEL_DATA',name:'Airtel Data',color:'#ED1C24',textColor:'#fff'},
+  ],
+  ELECTRICITY:[
+    {id:'EKO-ELECTRIC',name:'Eko Electric',color:'#1a237e',textColor:'#fff'},
+    {id:'IKEJA-ELECTRIC',name:'Ikeja Electric',color:'#e65100',textColor:'#fff'},
+  ],
+  TV_CABLE:[
+    {id:'DSTV',name:'DSTV',color:'#003876',textColor:'#fff'},
+    {id:'GOTV',name:'GoTV',color:'#00A651',textColor:'#fff'},
+    {id:'STARTIMES',name:'StarTimes',color:'#E30613',textColor:'#fff'},
+  ],
+  INTERNET:[
+    {id:'SPECTRANET',name:'Spectranet',color:'#7B1FA2',textColor:'#fff'},
+    {id:'SMILE',name:'Smile',color:'#FF6F00',textColor:'#fff'},
+  ],
+  EDUCATION:[
+    {id:'WAEC',name:'WAEC',color:'#0D47A1',textColor:'#fff'},
+    {id:'JAMB',name:'JAMB',color:'#1B5E20',textColor:'#fff'},
+  ],
+};
+
+let billStep=1,billType='',billProvider='',billPin='';
+
+function openBillFlow(type){
+  billType=type;billStep=1;billProvider='';billPin='';
+  const cfg=BILL_TYPES[type];
+  document.getElementById('bill-flow-title').textContent='Pay '+cfg.label;
+  document.getElementById('bill-step1-title').textContent='Select '+cfg.label+' Provider';
+  // Render providers
+  const providers=BILL_PROVIDERS[type]||[];
+  document.getElementById('bill-providers').innerHTML=providers.map(p=>`
+    <div class="bill-provider${billProvider===p.id?' selected':''}" onclick="selectBillProvider('${p.id}')">
+      <div class="bill-provider-logo" style="background:${p.color};color:${p.textColor};font-size:12px;">${p.name.slice(0,3).toUpperCase()}</div>
+      <div class="bill-provider-name">${p.name}</div>
+    </div>`).join('');
+  renderBillStep();
+  document.getElementById('bill-flow').classList.add('on');
+}
+
+function selectBillProvider(id){
+  billProvider=id;
+  document.querySelectorAll('#bill-providers .bill-provider').forEach(el=>{
+    el.classList.toggle('selected',el.querySelector('.bill-provider-name').textContent===BILL_PROVIDERS[billType].find(p=>p.id===id)?.name);
+  });
+}
+
+function closeBillFlow(reload){
+  document.getElementById('bill-flow').classList.remove('on');
+  if(reload){nav('screen-bills');loadWallet();}
+}
+
+function renderBillStep(){
+  document.querySelectorAll('#bill-flow .flow-body .flow-screen').forEach(s=>s.classList.remove('active'));
+  const sid=billStep<=5?'bill-s'+billStep:'bill-s-error';
+  document.getElementById(sid).classList.add('active');
+  document.getElementById('bill-progress').style.width=(billStep*20)+'%';
+  const footer=document.getElementById('bill-footer');
+  const backBtn=document.getElementById('bill-back');
+  footer.style.display=(billStep>=4)?'none':'block';
+  backBtn.style.visibility=(billStep===1)?'hidden':'visible';
+
+  if(billStep===2){
+    const cfg=BILL_TYPES[billType];
+    document.getElementById('bill-customer-label').textContent=cfg.customerLabel;
+    document.getElementById('bill-customer').placeholder=cfg.placeholder;
+    document.getElementById('bill-step2-title').textContent='Enter '+cfg.label+' Details';
+    document.getElementById('bill-validate-result').style.display='none';
+    // Show presets
+    const presets=cfg.presets||[];
+    document.getElementById('bill-presets').innerHTML=presets.map(p=>
+      `<button class="bill-preset" onclick="setBillPreset(${p})">${BILL_TYPES[billType].currency==='NGN'?'₦':'$'}${p.toLocaleString()}</button>`
+    ).join('');
+    // Show wallet balance
+    const wb=W?.balances?.find(b=>b.currency===(cfg.currency||'NGN'));
+    const sym=S[cfg.currency||'NGN']||'';
+    document.getElementById('bill-wallet-bal').textContent=wb?sym+fmtNum(wb.balance)+' '+(cfg.currency||'NGN'):'No balance';
+  }
+  if(billStep===3)renderBillConfirm();
+}
+
+function setBillPreset(val){
+  document.getElementById('bill-amount').value=val;
+  document.querySelectorAll('.bill-preset').forEach(b=>b.classList.toggle('on',Number(b.textContent.replace(/[^\d]/g,''))===val));
+}
+
+function onBillAmountChange(){
+  const val=Number(document.getElementById('bill-amount').value);
+  document.querySelectorAll('.bill-preset').forEach(b=>b.classList.toggle('on',Number(b.textContent.replace(/[^\d]/g,''))===val));
+}
+
+function billNext(){
+  if(billStep===1){
+    if(!billProvider){toast('Select a provider','e');return;}
+    billStep=2;renderBillStep();return;
+  }
+  if(billStep===2){
+    const customer=document.getElementById('bill-customer').value.trim();
+    const amount=Number(document.getElementById('bill-amount').value);
+    if(!customer){toast('Enter '+BILL_TYPES[billType].customerLabel.toLowerCase(),'e');return;}
+    if(!amount||amount<=0){toast('Enter a valid amount','e');return;}
+    // Check balance
+    const cfg=BILL_TYPES[billType];
+    const wb=W?.balances?.find(b=>b.currency===(cfg.currency||'NGN'));
+    if(!wb||Number(wb.balance)<amount){toast('Insufficient balance','e');return;}
+    billStep=3;renderBillStep();return;
+  }
+  if(billStep===3){
+    billStep=4;renderBillStep();return;
+  }
+}
+
+function billBack(){
+  if(billStep>1){billStep--;renderBillStep();}
+}
+
+function renderBillConfirm(){
+  const cfg=BILL_TYPES[billType];
+  const provider=BILL_PROVIDERS[billType]?.find(p=>p.id===billProvider);
+  const customer=document.getElementById('bill-customer').value.trim();
+  const amount=Number(document.getElementById('bill-amount').value);
+  const sym=S[cfg.currency||'NGN']||'';
+  document.getElementById('bill-confirm-card').innerHTML=`
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-size:36px;margin-bottom:4px;">${cfg.icon}</div>
+      <div style="font-size:20px;font-weight:700;color:var(--t1);">${sym}${fmtNum(amount)}</div>
+      <div style="font-size:13px;color:var(--t2);">${cfg.label} Payment</div>
+    </div>
+    <div class="bill-confirm-row"><span class="bill-confirm-label">Provider</span><span class="bill-confirm-value">${provider?.name||billProvider}</span></div>
+    <div class="bill-confirm-row"><span class="bill-confirm-label">${cfg.customerLabel}</span><span class="bill-confirm-value">${customer}</span></div>
+    <div class="bill-confirm-row"><span class="bill-confirm-label">Amount</span><span class="bill-confirm-value">${sym}${fmtNum(amount)}</span></div>
+    <div class="bill-confirm-row"><span class="bill-confirm-label">Currency</span><span class="bill-confirm-value">${cfg.currency||'NGN'}</span></div>
+    <div class="bill-confirm-row"><span class="bill-confirm-label">Fee</span><span class="bill-confirm-value" style="color:#4CAF50;">Free</span></div>
+    <div class="bill-confirm-row" style="border-top:2px solid #eee;padding-top:12px;"><span class="bill-confirm-label" style="font-weight:700;">Total</span><span class="bill-confirm-value" style="font-size:16px;font-weight:700;color:var(--p);">${sym}${fmtNum(amount)}</span></div>
+  `;
+}
+
+function billPinKey(n){
+  if(billPin.length>=6)return;
+  billPin+=n;
+  const dots=document.querySelectorAll('#bill-pin-dots .pin-dot');
+  dots.forEach((d,i)=>d.classList.toggle('filled',i<billPin.length));
+  if(billPin.length===6)executeBillPayment();
+}
+
+function billPinDelete(){
+  billPin=billPin.slice(0,-1);
+  const dots=document.querySelectorAll('#bill-pin-dots .pin-dot');
+  dots.forEach((d,i)=>d.classList.toggle('filled',i<billPin.length));
+}
+
+async function executeBillPayment(){
+  const cfg=BILL_TYPES[billType];
+  const customer=document.getElementById('bill-customer').value.trim();
+  const amount=Number(document.getElementById('bill-amount').value);
+  try{
+    let result;
+    if(billType==='AIRTIME'){
+      result=await api('POST','/bills/airtime',{
+        provider:billProvider,
+        phoneNumber:customer,
+        amount,
+        currency:cfg.currency||'NGN',
+        country:'NG',
+      });
+    }else{
+      result=await api('POST','/bills/pay',{
+        type:billType,
+        billerCode:billProvider,
+        customer,
+        amount,
+        currency:cfg.currency||'NGN',
+        country:'NG',
+      });
+    }
+    const sym=S[cfg.currency||'NGN']||'';
+    document.getElementById('bill-success-sub').textContent=cfg.label+' payment of '+sym+fmtNum(amount)+' was successful';
+    document.getElementById('bill-success-detail').textContent='Ref: '+(result.providerRef||result.billId||'N/A');
+    billStep=5;renderBillStep();
+    loadWallet();
+  }catch(e){
+    const dots=document.getElementById('bill-pin-dots');
+    if(e.message?.includes('PIN')||e.message?.includes('pin')){
+      billPin='';
+      document.querySelectorAll('#bill-pin-dots .pin-dot').forEach(d=>d.classList.remove('filled'));
+      dots.classList.add('shake');
+      setTimeout(()=>dots.classList.remove('shake'),500);
+      toast(e.message,'e');
+    }else{
+      document.getElementById('bill-error-title').textContent='Payment Failed';
+      document.getElementById('bill-error-sub').textContent=e.message||'Something went wrong';
+      billStep=99;renderBillStep();
+    }
+  }
+}
+
+function billRetry(){billStep=3;billPin='';renderBillStep();}
+
+async function loadBillHistory(){
+  try{
+    const txns=await api('GET','/wallets/statement?limit=50');
+    const billTxns=(txns.transactions||[]).filter(t=>t.type==='BILL_PAYMENT');
+    const el=document.getElementById('bill-history');
+    if(!billTxns.length){
+      el.innerHTML='<div class="empty-state"><div class="empty-icon">&#128221;</div><p>No bill payments yet</p></div>';
+      return;
+    }
+    el.innerHTML=billTxns.map(t=>{
+      const icon=t.note?.includes('Airtime')?'&#128241;':t.note?.includes('Data')?'&#128246;':t.note?.includes('DSTV')||t.note?.includes('GoTV')?'&#128250;':t.note?.includes('Electric')?'&#9889;':'&#128221;';
+      const bgColor=t.note?.includes('Airtime')?'#fff3e0':t.note?.includes('Data')?'#e3f2fd':t.note?.includes('DSTV')?'#e8eaf6':'#fff8e1';
+      return `<div class="bill-item">
+        <div class="bill-item-icon" style="background:${bgColor}">${icon}</div>
+        <div class="bill-item-info"><div class="bill-item-type">${t.note||t.type}</div><div class="bill-item-sub">${t.provider||''}</div></div>
+        <div><div class="bill-item-amt">${(S[t.currency]||'')}${fmtNum(t.amount)}</div><div class="bill-item-date">${fmtDate(t.createdAt)}</div></div>
+      </div>`;
+    }).join('');
+  }catch(e){console.log('Bill history:',e.message);}
 }
 </script>
 </body>
